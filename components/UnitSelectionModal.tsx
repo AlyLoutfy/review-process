@@ -26,10 +26,14 @@ export default function UnitSelectionModal({
     if (isOpen) {
       document.body.style.overflow = "hidden";
       setTimeout(() => setIsAnimating(true), 10);
-      setSelectedUnitId(null);
+      requestAnimationFrame(() => {
+        setSelectedUnitId(null);
+      });
     } else {
       document.body.style.overflow = "unset";
-      setIsAnimating(false);
+      requestAnimationFrame(() => {
+        setIsAnimating(false);
+      });
     }
     return () => {
       document.body.style.overflow = "unset";

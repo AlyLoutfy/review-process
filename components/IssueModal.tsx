@@ -38,9 +38,11 @@ export default function IssueModal({
       // but we can show the file name if it exists
     } else {
       document.body.style.overflow = "unset";
-      setIssueText("");
-      setSelectedFile(null);
-      setIsAnimating(false);
+      requestAnimationFrame(() => {
+        setIssueText("");
+        setSelectedFile(null);
+        setIsAnimating(false);
+      });
     }
     return () => {
       document.body.style.overflow = "unset";

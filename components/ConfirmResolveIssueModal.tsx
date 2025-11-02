@@ -115,7 +115,7 @@ export default function ConfirmResolveIssueModal({
             </div>
 
             <p className="text-sm text-gray-600">
-              Clicking "Confirm & Approve" will mark this item as reviewed and remove the issue flag.
+              Clicking &quot;Confirm & Approve&quot; will mark this item as reviewed and remove the issue flag.
             </p>
           </div>
 

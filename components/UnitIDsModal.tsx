@@ -24,7 +24,9 @@ export default function UnitIDsModal({
       setTimeout(() => setIsAnimating(true), 10);
     } else {
       document.body.style.overflow = "unset";
-      setIsAnimating(false);
+      requestAnimationFrame(() => {
+        setIsAnimating(false);
+      });
     }
     return () => {
       document.body.style.overflow = "unset";

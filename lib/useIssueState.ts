@@ -20,8 +20,10 @@ export function useIssueState(releaseId: string, itemType: "payment-plan" | "uni
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        setIssues(new Map(data));
-      } catch (e) {
+        requestAnimationFrame(() => {
+          setIssues(new Map(data));
+        });
+      } catch {
         // Invalid storage, start fresh
       }
     }

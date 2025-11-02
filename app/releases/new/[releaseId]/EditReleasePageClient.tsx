@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { allUnitDesigns, allPaymentPlans, saveRelease, generateUnits, getReleaseById } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
-import { Check, X, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 const COMPOUND_OPTIONS = ["June", "Ogami", "The Estates"];

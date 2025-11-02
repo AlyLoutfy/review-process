@@ -12,8 +12,10 @@ export function useReviewedState(releaseId: string, itemType: "payment-plan" | "
     if (stored) {
       try {
         const ids = JSON.parse(stored);
-        setReviewedIds(new Set(ids));
-      } catch (e) {
+        requestAnimationFrame(() => {
+          setReviewedIds(new Set(ids));
+        });
+      } catch {
         // Invalid storage, start fresh
       }
     }

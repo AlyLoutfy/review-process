@@ -347,8 +347,8 @@ export const getAllReleases = (): Release[] => {
       });
       return releases;
     }
-  } catch (e) {
-    console.error("Error loading releases from localStorage:", e);
+  } catch {
+    console.error("Error loading releases from localStorage");
   }
   
   return mockReleases;
@@ -372,8 +372,8 @@ export const saveRelease = (release: Release): void => {
     release.units = generateUnits(release.unitDesigns);
     
     localStorage.setItem("releases", JSON.stringify(releases));
-  } catch (e) {
-    console.error("Error saving release to localStorage:", e);
+  } catch {
+    console.error("Error saving release to localStorage");
   }
 };
 
