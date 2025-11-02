@@ -80,6 +80,17 @@ export default function Home() {
   // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Handle client-side routing from 404.html redirect
+      const redirectPath = sessionStorage.getItem('nextjs-redirect');
+      if (redirectPath) {
+        sessionStorage.removeItem('nextjs-redirect');
+        // Update browser history to the original path
+        // Next.js router will handle the routing when the page loads
+        window.history.replaceState({}, '', redirectPath);
+        // Trigger a navigation event that Next.js will pick up
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+
       const allReleases = getAllReleases();
       setReleases(allReleases);
 

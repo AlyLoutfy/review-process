@@ -1,39 +1,64 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Redirecting...</title>
     <script>
-      // GitHub Pages doesn't support client-side routing by default
-      // This 404.html will be served for any route that doesn't exist
-      // We redirect to index.html which will handle client-side routing
-      var pathSegmentsToKeep = 0;
-      var l = window.location;
-      var path = l.pathname;
-      
-      // Handle both root and subdirectory deployments
-      var basePath = '';
-      // If we're in a subdirectory (e.g., /repo-name/...), extract it
-      var pathParts = path.split('/').filter(Boolean);
-      if (pathParts.length > 0 && !pathParts[0].includes('.')) {
-        // Likely a subdirectory, but for root deployment, just use '/'
-        basePath = '';
-      }
-      
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        basePath + '/?/' +
-        path.slice(1).replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      // GitHub Pages 404 handler for Next.js client-side routing
+      // When GitHub Pages can't find a file, it serves this 404.html
+      // We redirect to index.html and let Next.js router handle the route
+      (function () {
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+
+        // Remove trailing slash for consistency (Next.js router will handle it)
+        if (path !== "/" && path.endsWith("/")) {
+          path = path.slice(0, -1);
+        }
+
+        // Try to access the path directly first (in case it exists as index.html)
+        // If the path doesn't end with .html, try with /index.html
+        if (!path.endsWith(".html") && path !== "/") {
+          // Check if it's a directory path that should have index.html
+          var indexPath = path + "/index.html";
+          // Try to fetch it first
+          fetch(indexPath, { method: "HEAD" })
+            .then(function (response) {
+              if (response.ok) {
+                // The index.html exists, redirect to it
+                window.location.replace(path + "/" + search + hash);
+              } else {
+                // Doesn't exist, let Next.js router handle it
+                redirectToIndex();
+              }
+            })
+            .catch(function () {
+              // Fetch failed, redirect to index and let Next.js handle it
+              redirectToIndex();
+            });
+        } else {
+          redirectToIndex();
+        }
+
+        function redirectToIndex() {
+          // Redirect to root and let Next.js router handle client-side routing
+          var originalPath = path + search + hash;
+          if (originalPath !== "/" && originalPath !== "/index.html") {
+            // Store original path for Next.js router to pick up
+            sessionStorage.setItem("nextjs-redirect", originalPath);
+          }
+          window.location.replace("/");
+        }
+      })();
     </script>
+    <meta http-equiv="refresh" content="0;url=/" />
   </head>
   <body>
     <p>Redirecting...</p>
     <noscript>
-      <p>JavaScript is required. <a href="/">Go to homepage</a></p>
+      <p>JavaScript is required for this application.</p>
+      <p><a href="/">Go to homepage</a></p>
     </noscript>
   </body>
 </html>
-
