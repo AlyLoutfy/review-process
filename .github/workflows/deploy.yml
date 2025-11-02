@@ -37,42 +37,63 @@ jobs:
 
       - name: Copy required files for GitHub Pages
         run: |
-          # Ensure .nojekyll exists to prevent Jekyll processing
-          # This allows files starting with _ (like _next) to be served
-          if [ -f public/.nojekyll ]; then
-            cp public/.nojekyll out/.nojekyll
-          else
-            touch out/.nojekyll
-          fi
+          # CRITICAL: .nojekyll file prevents Jekyll from processing the site
+          # Without this, GitHub Pages ignores directories/files starting with _
+          # This is essential for _next/ directory to be served
+          echo "Creating .nojekyll file..."
+          touch out/.nojekyll
+          chmod 644 out/.nojekyll
+          
           # 404.html is already in out/ from Next.js build, but ensure it exists
           if [ ! -f out/404.html ]; then
             cp public/404.html out/404.html || true
           fi
-          # Verify critical files exist
-          echo "Verifying build output..."
-          ls -la out/ | head -10
-          echo "Checking for .nojekyll:"
-          ls -la out/.nojekyll || echo "WARNING: .nojekyll not found!"
-          echo "Checking for CSS files:"
-          find out/_next/static -name "*.css" | head -5
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
 
       - name: Verify build output
         run: |
           echo "=== Build Output Verification ==="
-          echo "Checking for .nojekyll:"
-          ls -la out/.nojekyll || echo "ERROR: .nojekyll not found!"
           echo ""
-          echo "Checking for CSS:"
-          find out/_next/static -name "*.css" -exec ls -lh {} \; | head -3
+          echo "1. Checking for .nojekyll (CRITICAL for CSS loading):"
+          if [ -f out/.nojekyll ]; then
+            echo "   ✓ .nojekyll exists"
+            ls -lh out/.nojekyll
+          else
+            echo "   ✗ ERROR: .nojekyll NOT FOUND! CSS will not load!"
+            exit 1
+          fi
           echo ""
-          echo "Checking for index.html:"
-          ls -lh out/index.html || echo "ERROR: index.html not found!"
+          echo "2. Checking for CSS files:"
+          CSS_COUNT=$(find out/_next/static -name "*.css" | wc -l)
+          if [ "$CSS_COUNT" -gt 0 ]; then
+            echo "   ✓ Found $CSS_COUNT CSS file(s)"
+            find out/_next/static -name "*.css" -exec ls -lh {} \;
+          else
+            echo "   ✗ ERROR: No CSS files found!"
+            exit 1
+          fi
           echo ""
-          echo "Top-level files in out/:"
-          ls -la out/ | grep -E "^\.|index|404" | head -5
+          echo "3. Checking for index.html:"
+          if [ -f out/index.html ]; then
+            echo "   ✓ index.html exists"
+            ls -lh out/index.html
+          else
+            echo "   ✗ ERROR: index.html not found!"
+            exit 1
+          fi
+          echo ""
+          echo "4. Verifying CSS reference in HTML:"
+          if grep -q "_next/static.*\.css" out/index.html; then
+            echo "   ✓ CSS is referenced in index.html"
+            grep -o 'href="[^"]*\.css"' out/index.html | head -1
+          else
+            echo "   ✗ WARNING: CSS not found in index.html"
+          fi
+          echo ""
+          echo "5. Top-level files in out/:"
+          ls -la out/ | head -10
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

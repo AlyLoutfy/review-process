@@ -9,15 +9,31 @@
       // We redirect to index.html which will handle client-side routing
       var pathSegmentsToKeep = 0;
       var l = window.location;
+      var path = l.pathname;
+      
+      // Handle both root and subdirectory deployments
+      var basePath = '';
+      // If we're in a subdirectory (e.g., /repo-name/...), extract it
+      var pathParts = path.split('/').filter(Boolean);
+      if (pathParts.length > 0 && !pathParts[0].includes('.')) {
+        // Likely a subdirectory, but for root deployment, just use '/'
+        basePath = '';
+      }
+      
       l.replace(
         l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        basePath + '/?/' +
+        path.slice(1).replace(/&/g, '~and~') +
         (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
         l.hash
       );
     </script>
   </head>
-  <body></body>
+  <body>
+    <p>Redirecting...</p>
+    <noscript>
+      <p>JavaScript is required. <a href="/">Go to homepage</a></p>
+    </noscript>
+  </body>
 </html>
 

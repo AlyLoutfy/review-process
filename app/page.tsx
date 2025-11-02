@@ -67,7 +67,9 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
 };
 
 export default function Home() {
-  const [releases, setReleases] = useState<Release[]>(() => getAllReleases());
+  // Initialize with empty array to avoid hydration mismatch
+  // Will be populated in useEffect after mount
+  const [releases, setReleases] = useState<Release[]>([]);
   const [copiedReleaseId, setCopiedReleaseId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   // Initialize with empty statuses to avoid hydration mismatch
@@ -146,7 +148,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <h2 className="text-2xl font-semibold text-gray-900">All Releases</h2>
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">{releases.length} Total</span>
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full" suppressHydrationWarning>
+                  {isHydrated ? releases.length : 0} Total
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setFilter("all")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${filter === "all" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
