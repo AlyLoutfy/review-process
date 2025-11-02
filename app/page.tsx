@@ -35,8 +35,17 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
     }
     const ppIssues = localStorage.getItem(ppIssuesKey);
     if (ppIssues) {
-      const issues = JSON.parse(ppIssues);
-      if (issues.length > 0) hasIssues = true;
+      const issuesMap = JSON.parse(ppIssues);
+      // issuesMap is an array of [id, issues[]] pairs
+      // Check if any item actually has issues
+      if (Array.isArray(issuesMap)) {
+        for (const [, itemIssues] of issuesMap) {
+          if (Array.isArray(itemIssues) && itemIssues.length > 0) {
+            hasIssues = true;
+            break;
+          }
+        }
+      }
     }
   } catch {
     // Ignore errors
@@ -53,8 +62,17 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
     }
     const udIssues = localStorage.getItem(udIssuesKey);
     if (udIssues) {
-      const issues = JSON.parse(udIssues);
-      if (issues.length > 0) hasIssues = true;
+      const issuesMap = JSON.parse(udIssues);
+      // issuesMap is an array of [id, issues[]] pairs
+      // Check if any item actually has issues
+      if (Array.isArray(issuesMap)) {
+        for (const [, itemIssues] of issuesMap) {
+          if (Array.isArray(itemIssues) && itemIssues.length > 0) {
+            hasIssues = true;
+            break;
+          }
+        }
+      }
     }
   } catch {
     // Ignore errors
@@ -187,25 +205,38 @@ export default function Home() {
                 Create Your First Release
               </Link>
             </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {releases
-                .filter((release) => {
-                  if (!isHydrated) return true; // Show all during SSR/hydration
-                  const status = releaseStatuses.get(release.id);
-                  if (!status) return filter === "all";
-                  if (filter === "pending") {
-                    return !status.isComplete;
-                  }
-                  if (filter === "reviewed") {
-                    return status.isComplete;
-                  }
-                  if (filter === "flagged") {
-                    return status.hasIssues;
-                  }
-                  return true;
-                })
-                .map((release) => {
+          ) : (() => {
+            const filteredReleases = releases.filter((release) => {
+              if (!isHydrated) return true; // Show all during SSR/hydration
+              const status = releaseStatuses.get(release.id);
+              if (!status) return filter === "all";
+              if (filter === "pending") {
+                return !status.isComplete;
+              }
+              if (filter === "reviewed") {
+                return status.isComplete;
+              }
+              if (filter === "flagged") {
+                return status.hasIssues;
+              }
+              return true;
+            });
+
+            if (filteredReleases.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center py-16 px-4">
+                  <div className="text-6xl mb-4">🔍</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nothing to see here!</h3>
+                  <p className="text-gray-600 text-center max-w-md">
+                    No releases match your current filter. Try selecting a different filter option.
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="divide-y divide-gray-200">
+                {filteredReleases.map((release) => {
                   // Use default status during SSR/hydration, then use actual status
                   const defaultStatus = {
                     reviewedCount: 0,
@@ -291,8 +322,9 @@ export default function Home() {
                     </div>
                   );
                 })}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

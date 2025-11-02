@@ -72,33 +72,41 @@ export default function UnitIDsModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-800">Units for {unitDesignName}</h3>
+        <div className="flex items-center justify-between p-5 border-b border-gray-200 bg-white">
+          <h3 className="text-lg font-semibold text-gray-900">
+            <span className="text-gray-900">{unitDesignName}</span>
+            <span className="text-gray-600 font-normal ml-2">assigned to Units:</span>
+          </h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
             aria-label="Close"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
-        <div className="p-4 max-h-96 overflow-y-auto">
+        <div className="p-5 max-h-96 overflow-y-auto bg-gray-50">
           {unitIds.length > 0 ? (
-            <ul className="space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {unitIds.map((id) => (
-                <li key={id} className="px-3 py-1 bg-gray-100 rounded-md text-sm font-mono text-gray-800">
+                <div
+                  key={id}
+                  className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-mono text-gray-800 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-default shadow-sm"
+                >
                   {id}
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           ) : (
-            <p className="text-gray-600 text-sm">No units assigned to this design.</p>
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm">No units assigned to this design.</p>
+            </div>
           )}
         </div>
-        <div className="p-4 border-t border-gray-200 flex justify-end bg-gray-50">
+        <div className="p-4 border-t border-gray-200 flex justify-end bg-white">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors cursor-pointer font-medium shadow-sm hover:shadow-md"
           >
             Close
           </button>
