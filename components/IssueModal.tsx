@@ -89,8 +89,8 @@ export default function IssueModal({
         fileInputRef.current.value = "";
       }
       onClose();
-    } catch (error) {
-      console.error("Error submitting issue:", error);
+    } catch {
+      // Error submitting issue
     } finally {
       setIsSubmitting(false);
     }

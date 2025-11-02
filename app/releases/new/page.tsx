@@ -107,8 +107,7 @@ export default function CreateReleasePage() {
 
       // Redirect to review page
       router.push(`/review/${releaseData.id}`);
-    } catch (error) {
-      console.error("Error creating release:", error);
+    } catch {
       alert("Failed to create release. Please try again.");
       setIsSubmitting(false);
     }

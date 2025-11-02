@@ -135,9 +135,8 @@ export default function Home() {
       await navigator.clipboard.writeText(url);
       setCopiedReleaseId(releaseId);
       setTimeout(() => setCopiedReleaseId(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy link:", err);
-      alert("Failed to copy link. Please try again.");
+    } catch {
+      // Failed to copy link
     }
   };
 

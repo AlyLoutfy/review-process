@@ -348,7 +348,7 @@ export const getAllReleases = (): Release[] => {
       return releases;
     }
   } catch {
-    console.error("Error loading releases from localStorage");
+    // Error loading releases from localStorage
   }
   
   return mockReleases;
@@ -373,7 +373,7 @@ export const saveRelease = (release: Release): void => {
     
     localStorage.setItem("releases", JSON.stringify(releases));
   } catch {
-    console.error("Error saving release to localStorage");
+    // Error saving release to localStorage
   }
 };
 

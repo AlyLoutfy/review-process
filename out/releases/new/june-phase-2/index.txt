@@ -1,83 +1,18 @@
 1:"$Sreact.fragment"
-9:I[68027,[],"default"]
+2:I[39756,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+3:I[37457,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+5:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
+6:"$Sreact.suspense"
+8:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"ViewportBoundary"]
+a:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"MetadataBoundary"]
+c:I[68027,[],"default"]
 :HL["/review-process/_next/static/chunks/e7970eac00465bae.css","style"]
 :HL["/review-process/_next/static/media/797e433ab948586e-s.p.dbea232f.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/review-process/_next/static/media/caa3a2e1cccd8315-s.p.853070df.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-2:Tc45,
-              (function() {
-                console.log('=== Deployment Debug Info ===');
-                console.log('Current URL:', window.location.href);
-                console.log('Document Base URI:', document.baseURI);
-                console.log('Document Origin:', window.location.origin);
-                console.log('Document Pathname:', window.location.pathname);
-                
-                console.log('\n--- CSS Links ---');
-                const cssLinks = document.querySelectorAll('link[rel="stylesheet"]');
-                console.log('Total CSS links found:', cssLinks.length);
-                cssLinks.forEach((link, index) => {
-                  const href = link.getAttribute('href');
-                  console.log(`CSS Link ${index + 1}:`, href);
-                  
-                  // Check if it's a relative path
-                  if (href && !href.startsWith('http') && !href.startsWith('//')) {
-                    const fullUrl = new URL(href, window.location.href).href;
-                    console.log(`  → Resolved to:`, fullUrl);
-                  }
-                });
-                
-                console.log('\n--- JS Scripts ---');
-                const jsScripts = Array.from(document.querySelectorAll('script[src]'));
-                console.log('Total JS scripts found:', jsScripts.length);
-                jsScripts.forEach((script, index) => {
-                  const src = script.getAttribute('src');
-                  if (src && !src.includes('debug')) {
-                    console.log(`JS Script ${index + 1}:`, src);
-                    
-                    // Check if it's a relative path
-                    if (src && !src.startsWith('http') && !src.startsWith('//')) {
-                      const fullUrl = new URL(src, window.location.href).href;
-                      console.log(`  → Resolved to:`, fullUrl);
-                    }
-                  }
-                });
-                
-                console.log('\n--- Font Links ---');
-                const fontLinks = document.querySelectorAll('link[as="font"]');
-                console.log('Total font links found:', fontLinks.length);
-                fontLinks.forEach((link, index) => {
-                  const href = link.getAttribute('href');
-                  console.log(`Font Link ${index + 1}:`, href);
-                });
-                
-                console.log('\n--- Checking for _next directory ---');
-                fetch('/_next/static/chunks/', { method: 'HEAD' })
-                  .then(response => {
-                    console.log('_next/static/chunks/ check:', response.status === 404 ? '404 - NOT FOUND' : 'FOUND (' + response.status + ')');
-                  })
-                  .catch(error => {
-                    console.log('_next/static/chunks/ check: ERROR', error);
-                  });
-                
-                console.log('\n--- Document Head Info ---');
-                console.log('Base tag:', document.querySelector('base') ? document.querySelector('base').href : 'None');
-                console.log('=== End Debug Info ===');
-              })();
-            0:{"P":null,"b":"tyChKXrTke2Eun5tYHFyJ","c":["","releases","new","june-phase-2",""],"q":"","i":false,"f":[[["",{"children":["releases",{"children":["new",{"children":[["releaseId","june-phase-2","d"],{"children":["__PAGE__",{}]}]}]}]},"$undefined","$undefined",true],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/review-process/_next/static/chunks/e7970eac00465bae.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","suppressHydrationWarning":true,"children":[["$","head",null,{"children":["$","script",null,{"dangerouslySetInnerHTML":{"__html":"$2"}}]}],"$L3"]}]]}],{"children":["$L4",{"children":["$L5",{"children":["$L6",{"children":["$L7",{},null,false,false]},null,false,false]},null,false,false]},null,false,false]},null,false,false],"$L8",false]],"m":"$undefined","G":["$9",[]],"s":false,"S":true}
-a:I[39756,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"default"]
-b:I[37457,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"default"]
-d:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
-e:"$Sreact.suspense"
-10:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"ViewportBoundary"]
-12:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"MetadataBoundary"]
-3:["$","body",null,{"className":"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable antialiased","suppressHydrationWarning":true,"children":["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]
-4:["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}]
-5:["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}]
-6:["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}]
-7:["$","$1","c",{"children":["$Lc",[["$","script","script-0",{"src":"/review-process/_next/static/chunks/03a7f80bb30e349a.js","async":true,"nonce":"$undefined"}]],["$","$Ld",null,{"children":["$","$e",null,{"name":"Next.MetadataOutlet","children":"$@f"}]}]]}]
-8:["$","$1","h",{"children":[null,["$","$L10",null,{"children":"$@11"}],["$","div",null,{"hidden":true,"children":["$","$L12",null,{"children":["$","$e",null,{"name":"Next.Metadata","children":"$@13"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}]
-14:I[40541,["/review-process/_next/static/chunks/03a7f80bb30e349a.js"],"default"]
-c:["$","$L14",null,{"releaseId":"june-phase-2"}]
-11:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
-15:I[27201,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"IconMark"]
-13:[["$","title","0",{"children":"Sodic Releases Dashboard"}],["$","meta","1",{"name":"description","content":"Manage and review releases for Sodic"}],["$","link","2",{"rel":"icon","href":"/review-process/favicon.ico?favicon.0b3bf435.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L15","3",{}]]
-f:null
+0:{"P":null,"b":"hUcrQhQ7NMczUNckndNFm","c":["","releases","new","june-phase-2",""],"q":"","i":false,"f":[[["",{"children":["releases",{"children":["new",{"children":[["releaseId","june-phase-2","d"],{"children":["__PAGE__",{}]}]}]}]},"$undefined","$undefined",true],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/review-process/_next/static/chunks/e7970eac00465bae.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","suppressHydrationWarning":true,"children":["$","body",null,{"className":"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable antialiased","suppressHydrationWarning":true,"children":["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":["$L4",[["$","script","script-0",{"src":"/review-process/_next/static/chunks/bfd96316f595b5fd.js","async":true,"nonce":"$undefined"}]],["$","$L5",null,{"children":["$","$6",null,{"name":"Next.MetadataOutlet","children":"$@7"}]}]]}],{},null,false,false]},null,false,false]},null,false,false]},null,false,false]},null,false,false],["$","$1","h",{"children":[null,["$","$L8",null,{"children":"$@9"}],["$","div",null,{"hidden":true,"children":["$","$La",null,{"children":["$","$6",null,{"name":"Next.Metadata","children":"$@b"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],false]],"m":"$undefined","G":["$c",[]],"s":false,"S":true}
+d:I[40541,["/review-process/_next/static/chunks/bfd96316f595b5fd.js"],"default"]
+4:["$","$Ld",null,{"releaseId":"june-phase-2"}]
+9:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+e:I[27201,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"IconMark"]
+b:[["$","title","0",{"children":"Sodic Releases Dashboard"}],["$","meta","1",{"name":"description","content":"Manage and review releases for Sodic"}],["$","link","2",{"rel":"icon","href":"/review-process/favicon.ico?favicon.0b3bf435.ico","sizes":"256x256","type":"image/x-icon"}],["$","$Le","3",{}]]
+7:null

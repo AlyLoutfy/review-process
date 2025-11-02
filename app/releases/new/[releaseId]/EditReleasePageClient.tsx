@@ -100,8 +100,7 @@ export default function EditReleasePageClient({ releaseId }: { releaseId: string
 
       // Redirect to review page
       router.push(`/review/${releaseData.id}`);
-    } catch (error) {
-      console.error("Error updating release:", error);
+    } catch {
       alert("Failed to update release. Please try again.");
       setIsSubmitting(false);
     }
