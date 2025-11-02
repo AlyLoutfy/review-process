@@ -11,50 +11,27 @@
         var path = window.location.pathname;
         var search = window.location.search;
         var hash = window.location.hash;
+        var basePath = "/review-process";
 
-        // Remove trailing slash for consistency (Next.js router will handle it)
+        // Remove trailing slash for consistency
         if (path !== "/" && path.endsWith("/")) {
           path = path.slice(0, -1);
         }
 
-        // Try to access the path directly first (in case it exists as index.html)
-        // If the path doesn't end with .html, try with /index.html
-        if (!path.endsWith(".html") && path !== "/") {
-          // Check if it's a directory path that should have index.html
-          var indexPath = path + "/index.html";
-          // Try to fetch it first
-          fetch(indexPath, { method: "HEAD" })
-            .then(function (response) {
-              if (response.ok) {
-                // The index.html exists, redirect to it
-                window.location.replace(path + "/" + search + hash);
-              } else {
-                // Doesn't exist, let Next.js router handle it
-                redirectToIndex();
-              }
-            })
-            .catch(function () {
-              // Fetch failed, redirect to index and let Next.js handle it
-              redirectToIndex();
-            });
-        } else {
-          redirectToIndex();
+        // Extract the path relative to basePath
+        var relativePath = path;
+        if (relativePath.startsWith(basePath)) {
+          relativePath = relativePath.substring(basePath.length) || "/";
         }
 
-        function redirectToIndex() {
-          // Redirect to root and let Next.js router handle client-side routing
-          var originalPath = path + search + hash;
-          // Remove basePath from path if present
-          var basePath = "/review-process";
-          if (originalPath.startsWith(basePath)) {
-            originalPath = originalPath.substring(basePath.length) || "/";
-          }
-          if (originalPath !== "/" && originalPath !== "/index.html") {
-            // Store original path for Next.js router to pick up
-            sessionStorage.setItem("nextjs-redirect", originalPath);
-          }
-          window.location.replace(basePath + "/");
+        // Store the original path in sessionStorage for Next.js router
+        if (relativePath !== "/" && relativePath !== "/index.html") {
+          sessionStorage.setItem("nextjs-redirect", relativePath + search + hash);
         }
+
+        // Redirect to the root index.html which will load Next.js app
+        // The app will read from sessionStorage and navigate to the correct route
+        window.location.replace(basePath + "/" + search + hash);
       })();
     </script>
     <meta http-equiv="refresh" content="0;url=/review-process/" />
@@ -63,7 +40,7 @@
     <p>Redirecting...</p>
     <noscript>
       <p>JavaScript is required for this application.</p>
-      <p><a href="/">Go to homepage</a></p>
+      <p><a href="/review-process/">Go to homepage</a></p>
     </noscript>
   </body>
 </html>

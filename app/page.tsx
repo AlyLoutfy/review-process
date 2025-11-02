@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAllReleases, deleteRelease } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
@@ -148,6 +149,7 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
 };
 
 export default function Home() {
+  const router = useRouter();
   // Initialize with empty array to avoid hydration mismatch
   // Will be populated in useEffect after mount
   const [releases, setReleases] = useState<Release[]>([]);
@@ -166,11 +168,9 @@ export default function Home() {
       const redirectPath = sessionStorage.getItem('nextjs-redirect');
       if (redirectPath) {
         sessionStorage.removeItem('nextjs-redirect');
-        // Update browser history to the original path
-        // Next.js router will handle the routing when the page loads
-        window.history.replaceState({}, '', redirectPath);
-        // Trigger a navigation event that Next.js will pick up
-        window.dispatchEvent(new PopStateEvent('popstate'));
+        // Use Next.js router to navigate to the correct path
+        router.push(redirectPath);
+        return; // Exit early to prevent loading releases on redirect
       }
 
       const allReleases = getAllReleases();
