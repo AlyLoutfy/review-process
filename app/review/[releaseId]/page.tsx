@@ -102,7 +102,7 @@ export default function ReviewPage({ params }: { params: Promise<{ releaseId: st
                   </span>
                 </div>
               </div>
-              <Link href="/" className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 transition-colors duration-200 cursor-pointer shadow-sm hover:shadow-md flex-shrink-0">
+              <Link href="/" className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 transition-colors duration-200 cursor-pointer shadow-sm hover:shadow-md shrink-0">
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">All Releases</span>
               </Link>
