@@ -390,3 +390,41 @@ export const getReleaseById = (releaseId: string): Release | undefined => {
   return releases.find((release) => release.id === releaseId);
 };
 
+// Function to delete a release and clean up all related data
+export const deleteRelease = (releaseId: string): void => {
+  if (typeof window === "undefined") return;
+  
+  try {
+    // Delete the release from storage
+    const releases = getAllReleases();
+    const filteredReleases = releases.filter((r) => r.id !== releaseId);
+    localStorage.setItem("releases", JSON.stringify(filteredReleases));
+    
+    // Clean up all related localStorage data for this release
+    // Reviewed states
+    localStorage.removeItem(`reviewed-${releaseId}-payment-plan`);
+    localStorage.removeItem(`reviewed-${releaseId}-unit-design`);
+    
+    // Issues
+    localStorage.removeItem(`issues-${releaseId}-payment-plan`);
+    localStorage.removeItem(`issues-${releaseId}-unit-design`);
+    
+    // Activity logs - remove activities for this release
+    const activityLogKey = "review-process-activity-logs";
+    const storedActivities = localStorage.getItem(activityLogKey);
+    if (storedActivities) {
+      try {
+        const activities = JSON.parse(storedActivities);
+        const filteredActivities = activities.filter(
+          (activity: { releaseId: string }) => activity.releaseId !== releaseId
+        );
+        localStorage.setItem(activityLogKey, JSON.stringify(filteredActivities));
+      } catch {
+        // Error parsing activities, ignore
+      }
+    }
+  } catch {
+    // Error deleting release
+  }
+};
+

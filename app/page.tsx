@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getAllReleases } from "@/lib/mockData";
+import { getAllReleases, deleteRelease } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
-import { Plus, Calendar, Building2, Copy, Check, AlertCircle, CreditCard, History } from "lucide-react";
+import { Plus, Calendar, Building2, Copy, Check, AlertCircle, CreditCard, History, Trash2 } from "lucide-react";
+import DeleteReleaseModal from "@/components/DeleteReleaseModal";
 
 type Filter = "all" | "pending" | "reviewed" | "flagged";
 
@@ -156,6 +157,7 @@ export default function Home() {
   // Will be populated in useEffect after mount
   const [releaseStatuses, setReleaseStatuses] = useState<Map<string, ReleaseStatus>>(new Map());
   const [isHydrated, setIsHydrated] = useState(false);
+  const [deleteModalRelease, setDeleteModalRelease] = useState<Release | null>(null);
 
   // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
@@ -375,19 +377,53 @@ export default function Home() {
                           <Link 
                             href={`/review/${release.id}/history`}
                             onClick={(e) => e.stopPropagation()} 
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900" 
-                            title="View review history" 
-                            aria-label="View review history"
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
+                            aria-label="View history"
                           >
                             <History className="w-5 h-5" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                              View history
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                            </div>
                           </Link>
-                          <Link href={`/releases/new/${release.id}`} onClick={(e) => e.stopPropagation()} className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900" title="Edit release" aria-label="Edit release">
+                          <Link 
+                            href={`/releases/new/${release.id}`} 
+                            onClick={(e) => e.stopPropagation()} 
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
+                            aria-label="Edit release"
+                          >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                              Edit release
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                            </div>
                           </Link>
-                          <button onClick={(e) => copyReviewLink(release.id, e)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900" title="Copy review link" aria-label="Copy review link">
+                          <button 
+                            onClick={(e) => copyReviewLink(release.id, e)} 
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
+                            aria-label="Copy review link"
+                          >
                             {copiedReleaseId === release.id ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                              {copiedReleaseId === release.id ? "Link copied!" : "Copy review link"}
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                            </div>
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteModalRelease(release);
+                            }} 
+                            className="p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-gray-600 hover:text-red-600 relative group" 
+                            aria-label="Delete release"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                              Delete release
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                            </div>
                           </button>
                         </div>
                       </div>
@@ -398,6 +434,27 @@ export default function Home() {
             );
           })()}
           </div>
+
+        {/* Delete Release Modal */}
+        <DeleteReleaseModal
+          isOpen={!!deleteModalRelease}
+          onClose={() => setDeleteModalRelease(null)}
+          onConfirm={() => {
+            if (deleteModalRelease) {
+              deleteRelease(deleteModalRelease.id);
+              // Refresh releases and statuses
+              const allReleases = getAllReleases();
+              setReleases(allReleases);
+              const statuses = new Map<string, ReleaseStatus>();
+              allReleases.forEach((release) => {
+                statuses.set(release.id, getReleaseStatus(release));
+              });
+              setReleaseStatuses(statuses);
+              setDeleteModalRelease(null);
+            }
+          }}
+          release={deleteModalRelease}
+        />
       </div>
     </div>
   );
