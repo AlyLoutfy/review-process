@@ -15,7 +15,8 @@
 
 # next.js
 /.next/
-/out/
+# Uncomment the line below if you want to commit the out folder for GitHub Pages
+# /out/
 
 # production
 /build

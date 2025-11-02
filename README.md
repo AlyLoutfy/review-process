@@ -1,16 +1,20 @@
-# Real Estate Review Process
+# Sodic Releases Dashboard
 
 A Next.js application for reviewing payment plans and unit designs for real estate releases.
 
 ## Features
 
+- **Release Management**: Create and edit releases with payment plans and unit designs
 - **Review Page**: Clean, organized interface for reviewing releases
-- **Payment Plans**: View payment plans with down payment information and PDF previews
-- **Unit Designs**: Browse unit designs with details (beds, BUA) and media galleries
-- **Media Gallery**: Modal with three sections:
+- **Payment Plans**: View payment plans with down payment information, maintenance/club fees, and PDF previews
+- **Unit Designs**: Browse unit designs with details (beds, BUA, amenities) and media galleries
+- **Media Gallery**: Full-screen modal with three sections:
+  - Floor Plans
   - Offer Gallery
   - Unit Gallery
-  - Floor Plans
+- **Issue Tracking**: Flag issues on items and track resolution
+- **Review Status**: Mark items as reviewed with visual indicators
+- **Filtering**: Filter by All, Reviewed, Pending, or Flagged items
 - **Responsive Design**: Works seamlessly on mobile, tablet, and desktop
 - **Modern UI/UX**: Clean, professional interface optimized for the review process
 
@@ -32,76 +36,105 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Usage
 
+### Creating Releases
+
+Navigate to `/releases/new` to create a new release. Select:
+- Release name
+- Compound name (June, Ogami, The Estates)
+- Release date
+- Payment plans (from master list)
+- Unit designs (from master list)
+
 ### Accessing Review Pages
 
 Review pages are accessed via ID-based routes:
 
-- `/review/june-latest` - Latest release in June compound
-- `/review/june-phase-2` - Phase 2 release in June compound
+- `/review/[releaseId]` - Review a specific release
 
-### Structure
+### Review Interface
 
-- **Payment Plans**: Display name, down payment, and PDF preview button
-- **Unit Designs**: Display name, bedrooms, BUA (Built-Up Area), with:
-  - "View Media" button to open media modal
-  - "Preview" button to download PDF
-
-### Media Modal
-
-The media modal allows viewing:
-- Offer Gallery images
-- Unit Gallery images
-- Floor Plans images
-
-Click any image to view full-size. Press ESC to close or go back.
+- **Payment Plans**: View details, maintenance/club fees status, and preview payment plans
+- **Unit Designs**: View details, amenities, assigned units, and preview media/offers
+- **Review Actions**: 
+  - Approve items (mark as reviewed)
+  - Flag issues with text and optional file upload
+  - Delete flagged issues
+  - Confirm issue resolution before approving
 
 ## Project Structure
 
 ```
 ├── app/
+│   ├── page.tsx                      # Home page (All Releases)
+│   ├── releases/
+│   │   └── new/
+│   │       ├── page.tsx              # Create release page
+│   │       └── [releaseId]/
+│   │           └── page.tsx          # Edit release page
 │   ├── review/
 │   │   └── [releaseId]/
-│   │       └── page.tsx          # Dynamic review page
-│   ├── layout.tsx                # Root layout
-│   ├── globals.css               # Global styles
-│   └── page.tsx                  # Home page
+│   │       └── page.tsx              # Review page
+│   ├── layout.tsx                    # Root layout
+│   └── globals.css                   # Global styles
 ├── components/
-│   ├── PaymentPlanCard.tsx       # Payment plan display
-│   ├── UnitDesignCard.tsx        # Unit design display
-│   └── MediaModal.tsx            # Media gallery modal
+│   ├── PaymentPlanCard.tsx           # Payment plan display
+│   ├── UnitDesignViews/
+│   │   └── UnitDesignListView.tsx    # Unit design list view
+│   ├── MediaModal.tsx                # Full-screen media gallery
+│   ├── MediaPreview.tsx              # Media preview component
+│   ├── IssueModal.tsx                # Issue reporting modal
+│   ├── ConfirmResolveIssueModal.tsx  # Issue resolution confirmation
+│   ├── ConfirmDeleteIssueModal.tsx  # Issue deletion confirmation
+│   ├── UnitSelectionModal.tsx       # Unit selection for payment plan preview
+│   └── UnitIDsModal.tsx              # View assigned unit IDs
 ├── lib/
-│   └── mockData.ts               # Mock data for releases
+│   ├── mockData.ts                   # Mock data and localStorage management
+│   ├── useReviewedState.ts           # Review state management hook
+│   └── useIssueState.ts              # Issue state management hook
 └── public/
-    └── pdfs/                     # PDF files for previews
+    └── pdfs/                          # PDF files for previews
 ```
 
-## Customization
+## Deployment
 
-### Adding New Releases
+### GitHub Pages
 
-Edit `lib/mockData.ts` to add new releases with payment plans and unit designs.
+This app is configured for static export and can be deployed to GitHub Pages.
 
-### Replacing PDFs
+1. **Enable GitHub Pages**:
+   - Go to your repository Settings > Pages
+   - Under "Source", select "GitHub Actions"
 
-Replace placeholder PDFs in `public/pdfs/` with actual payment plan and unit design PDFs.
+2. **Deploy**:
+   - Push to `main` or `master` branch
+   - The GitHub Action will automatically build and deploy
 
-### Image Sources
+3. **Custom Domain** (optional):
+   - If deploying to a subdirectory, update `basePath` in `next.config.ts`
+   - Set `basePath: "/your-repo-name"` and uncomment `trailingSlash: true`
 
-Currently using Unsplash placeholder images. Update `lib/mockData.ts` to use your actual image URLs or local images in `public/images/`.
-
-## Technologies
-
-- **Next.js 14+** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Icon library
-
-## Deploy
-
-The easiest way to deploy is using [Vercel](https://vercel.com):
+### Build for Production
 
 ```bash
 npm run build
 ```
 
-Then deploy to your preferred hosting platform.
+This generates static files in the `out/` directory, which can be deployed to any static hosting service.
+
+## Technologies
+
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first CSS framework
+- **Lucide React** - Icon library
+
+## Data Storage
+
+Currently uses `localStorage` for client-side data persistence. This means:
+- Data is stored in the browser
+- Data is specific to each device/browser
+- For production use, consider integrating with a backend API
+
+## License
+
+Private project for Sodic.
