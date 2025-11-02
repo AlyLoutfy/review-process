@@ -173,10 +173,12 @@ export default function Home() {
       if (isOnHomePage) {
         const redirectPath = sessionStorage.getItem('nextjs-redirect');
         if (redirectPath) {
+          // Clear immediately to prevent loop
           sessionStorage.removeItem('nextjs-redirect');
-          // Use Next.js router for client-side navigation (no full page reload)
-          // This allows the target page to load even if it's not a static file
-          router.push(redirectPath);
+          
+          // Use replace instead of push to avoid adding to history
+          // This prevents the navigation from triggering another 404
+          router.replace(redirectPath);
           return; // Exit early to prevent loading releases on redirect
         }
       }
