@@ -40,13 +40,41 @@ jobs:
           # CRITICAL: .nojekyll file prevents Jekyll from processing the site
           # Without this, GitHub Pages ignores directories/files starting with _
           # This is essential for _next/ directory to be served
-          echo "Creating .nojekyll file..."
+          echo "Creating .nojekyll file (must be completely empty, no newlines)..."
+          # Create completely empty .nojekyll file (no newline, no whitespace)
           touch out/.nojekyll
+          # Ensure it's truly empty (truncate if needed)
+          truncate -s 0 out/.nojekyll 2>/dev/null || true
           chmod 644 out/.nojekyll
           
-          # 404.html is already in out/ from Next.js build, but ensure it exists
+          # Verify it was created and is empty
+          if [ ! -f out/.nojekyll ]; then
+            echo "ERROR: Failed to create .nojekyll file!"
+            exit 1
+          fi
+          FILE_SIZE=$(stat -f%z out/.nojekyll 2>/dev/null || stat -c%s out/.nojekyll 2>/dev/null || echo "unknown")
+          if [ "$FILE_SIZE" != "0" ]; then
+            echo "WARNING: .nojekyll file is not empty (size: $FILE_SIZE), truncating..."
+            truncate -s 0 out/.nojekyll 2>/dev/null || printf "" > out/.nojekyll
+          fi
+          echo "✓ .nojekyll file created successfully (size: $(stat -f%z out/.nojekyll 2>/dev/null || stat -c%s out/.nojekyll 2>/dev/null || echo 0) bytes)"
+          
+          # Ensure 404.html exists (Next.js should generate it, but verify)
           if [ ! -f out/404.html ]; then
-            cp public/404.html out/404.html || true
+            cp public/404.html out/404.html
+          fi
+          
+          # Verify critical directories exist
+          echo "Verifying build structure..."
+          ls -la out/ | head -10
+          echo ""
+          echo "Checking _next directory:"
+          if [ -d out/_next ]; then
+            echo "✓ _next directory exists"
+            find out/_next -type f | head -5
+          else
+            echo "✗ ERROR: _next directory missing!"
+            exit 1
           fi
 
       - name: Verify build output
@@ -57,13 +85,33 @@ jobs:
           if [ -f out/.nojekyll ]; then
             echo "   ✓ .nojekyll exists"
             ls -lh out/.nojekyll
+            cat out/.nojekyll
           else
             echo "   ✗ ERROR: .nojekyll NOT FOUND! CSS will not load!"
             exit 1
           fi
           echo ""
-          echo "2. Checking for CSS files:"
-          CSS_COUNT=$(find out/_next/static -name "*.css" | wc -l)
+          echo "2. Checking for _next directory structure:"
+          if [ -d out/_next ]; then
+            echo "   ✓ _next directory exists"
+            echo "   Directory contents:"
+            ls -la out/_next/ | head -5
+            echo ""
+            echo "   Checking static directory:"
+            if [ -d out/_next/static ]; then
+              echo "   ✓ static directory exists"
+              find out/_next/static -type d | head -5
+            else
+              echo "   ✗ ERROR: static directory missing!"
+              exit 1
+            fi
+          else
+            echo "   ✗ ERROR: _next directory missing!"
+            exit 1
+          fi
+          echo ""
+          echo "3. Checking for CSS files:"
+          CSS_COUNT=$(find out/_next/static -name "*.css" 2>/dev/null | wc -l)
           if [ "$CSS_COUNT" -gt 0 ]; then
             echo "   ✓ Found $CSS_COUNT CSS file(s)"
             find out/_next/static -name "*.css" -exec ls -lh {} \;
@@ -72,7 +120,24 @@ jobs:
             exit 1
           fi
           echo ""
-          echo "3. Checking for index.html:"
+          echo "4. Checking for JS files:"
+          JS_COUNT=$(find out/_next/static -name "*.js" 2>/dev/null | wc -l)
+          if [ "$JS_COUNT" -gt 0 ]; then
+            echo "   ✓ Found $JS_COUNT JS file(s)"
+          else
+            echo "   ✗ ERROR: No JS files found!"
+            exit 1
+          fi
+          echo ""
+          echo "5. Checking for font files:"
+          FONT_COUNT=$(find out/_next/static -name "*.woff2" 2>/dev/null | wc -l)
+          if [ "$FONT_COUNT" -gt 0 ]; then
+            echo "   ✓ Found $FONT_COUNT font file(s)"
+          else
+            echo "   ⚠ WARNING: No font files found (might be okay)"
+          fi
+          echo ""
+          echo "6. Checking for index.html:"
           if [ -f out/index.html ]; then
             echo "   ✓ index.html exists"
             ls -lh out/index.html
@@ -81,7 +146,7 @@ jobs:
             exit 1
           fi
           echo ""
-          echo "4. Verifying CSS reference in HTML:"
+          echo "7. Verifying CSS reference in HTML:"
           if grep -q "_next/static.*\.css" out/index.html; then
             echo "   ✓ CSS is referenced in index.html"
             grep -o 'href="[^"]*\.css"' out/index.html | head -1
@@ -89,8 +154,44 @@ jobs:
             echo "   ✗ WARNING: CSS not found in index.html"
           fi
           echo ""
-          echo "5. Top-level files in out/:"
-          ls -la out/ | head -10
+          echo "8. Verifying file paths in HTML:"
+          echo "   Sample asset references:"
+          grep -oE '(href|src)="[^"]*_next[^"]*"' out/index.html | head -3
+          echo ""
+          echo "9. Top-level files in out/ (showing hidden files):"
+          ls -la out/ | grep -E "^\.|index|404" | head -10
+          echo ""
+          echo "10. Verifying .nojekyll is actually in root:"
+          if [ -f out/.nojekyll ]; then
+            echo "   ✓ .nojekyll confirmed in out/ root"
+            file out/.nojekyll
+          fi
+
+      - name: Final verification before upload
+        run: |
+          echo "=== Final Pre-Upload Verification ==="
+          echo ""
+          echo "Verifying .nojekyll exists and is empty:"
+          if [ ! -f out/.nojekyll ]; then
+            echo "✗ ERROR: .nojekyll missing before upload!"
+            exit 1
+          fi
+          FILE_SIZE=$(stat -f%z out/.nojekyll 2>/dev/null || stat -c%s out/.nojekyll 2>/dev/null || echo "unknown")
+          if [ "$FILE_SIZE" != "0" ]; then
+            echo "✗ ERROR: .nojekyll is not empty (size: $FILE_SIZE)!"
+            exit 1
+          fi
+          echo "✓ .nojekyll is present and empty"
+          echo ""
+          echo "Verifying _next directory structure:"
+          if [ ! -d out/_next/static ]; then
+            echo "✗ ERROR: _next/static missing!"
+            exit 1
+          fi
+          echo "✓ _next/static exists"
+          echo ""
+          echo "Sample files that should be uploaded:"
+          find out/_next/static -type f | head -3
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
