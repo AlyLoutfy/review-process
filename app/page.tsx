@@ -165,12 +165,20 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       // Handle client-side routing from 404.html redirect
-      const redirectPath = sessionStorage.getItem('nextjs-redirect');
-      if (redirectPath) {
-        sessionStorage.removeItem('nextjs-redirect');
-        // Use Next.js router to navigate to the correct path
-        router.push(redirectPath);
-        return; // Exit early to prevent loading releases on redirect
+      // Only process redirect if we're on the home page (/) to prevent loops
+      const currentPath = window.location.pathname;
+      const basePath = "/review-process";
+      const isOnHomePage = currentPath === basePath + "/" || currentPath === basePath;
+      
+      if (isOnHomePage) {
+        const redirectPath = sessionStorage.getItem('nextjs-redirect');
+        if (redirectPath) {
+          sessionStorage.removeItem('nextjs-redirect');
+          // Use Next.js router for client-side navigation (no full page reload)
+          // This allows the target page to load even if it's not a static file
+          router.push(redirectPath);
+          return; // Exit early to prevent loading releases on redirect
+        }
       }
 
       const allReleases = getAllReleases();
