@@ -70,34 +70,24 @@ export default function Home() {
   const [releases, setReleases] = useState<Release[]>(() => getAllReleases());
   const [copiedReleaseId, setCopiedReleaseId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
-  const [releaseStatuses, setReleaseStatuses] = useState<Map<string, ReleaseStatus>>(() => {
-    const allReleases = getAllReleases();
-    const statuses = new Map<string, ReleaseStatus>();
-    allReleases.forEach((release) => {
-      statuses.set(release.id, getReleaseStatus(release));
-    });
-    return statuses;
-  });
+  // Initialize with empty statuses to avoid hydration mismatch
+  // Will be populated in useEffect after mount
+  const [releaseStatuses, setReleaseStatuses] = useState<Map<string, ReleaseStatus>>(new Map());
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Initial state is set via useState initializer, useEffect only for refresh on mount
+  // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
-    // This effect runs after mount to ensure localStorage is available
     if (typeof window !== "undefined") {
       const allReleases = getAllReleases();
-      // Only update if different from initial state
-      if (allReleases.length !== releases.length) {
-        setReleases(allReleases);
-      }
+      setReleases(allReleases);
 
       // Calculate statuses for all releases
       const statuses = new Map<string, ReleaseStatus>();
       allReleases.forEach((release) => {
         statuses.set(release.id, getReleaseStatus(release));
       });
-      // Only update if different
-      if (statuses.size !== releaseStatuses.size) {
-        setReleaseStatuses(statuses);
-      }
+      setReleaseStatuses(statuses);
+      setIsHydrated(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -187,6 +177,7 @@ export default function Home() {
             <div className="divide-y divide-gray-200">
               {releases
                 .filter((release) => {
+                  if (!isHydrated) return true; // Show all during SSR/hydration
                   const status = releaseStatuses.get(release.id);
                   if (!status) return filter === "all";
                   if (filter === "pending") {
@@ -201,12 +192,14 @@ export default function Home() {
                   return true;
                 })
                 .map((release) => {
-                  const status = releaseStatuses.get(release.id) || {
+                  // Use default status during SSR/hydration, then use actual status
+                  const defaultStatus = {
                     reviewedCount: 0,
                     totalCount: release.paymentPlans.length + release.unitDesigns.length,
                     hasIssues: false,
                     isComplete: false,
                   };
+                  const status = isHydrated ? (releaseStatuses.get(release.id) || defaultStatus) : defaultStatus;
                   const progressPercentage = status.totalCount > 0 ? Math.round((status.reviewedCount / status.totalCount) * 100) : 0;
 
                   // Determine row background color
@@ -237,14 +230,16 @@ export default function Home() {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-6 text-sm text-gray-600 mt-2 mb-3">
+                            <div className="flex items-center gap-6 text-sm text-gray-600 mt-2 mb-3">
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
-                              {new Date(release.releaseDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
+                              <span suppressHydrationWarning>
+                                {new Date(release.releaseDate).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Building2 className="w-4 h-4" />
@@ -258,13 +253,13 @@ export default function Home() {
                           {/* Progress Bar */}
                           <div className="mt-3">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-medium text-gray-700">
+                              <span className="text-xs font-medium text-gray-700" suppressHydrationWarning>
                                 Progress: {status.reviewedCount} / {status.totalCount} reviewed
                               </span>
-                              <span className="text-xs font-medium text-gray-600">{progressPercentage}%</span>
+                              <span className="text-xs font-medium text-gray-600" suppressHydrationWarning>{progressPercentage}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className={`h-2 rounded-full transition-all ${status.isComplete ? "bg-green-600" : status.hasIssues ? "bg-red-500" : "bg-blue-600"}`} style={{ width: `${progressPercentage}%` }} />
+                              <div className={`h-2 rounded-full transition-all ${status.isComplete ? "bg-green-600" : status.hasIssues ? "bg-red-500" : "bg-blue-600"}`} style={{ width: `${progressPercentage}%` }} suppressHydrationWarning />
                             </div>
                           </div>
                         </Link>
