@@ -7,6 +7,8 @@ import PaymentPlanCard from "@/components/PaymentPlanCard";
 import UnitDesignListView from "@/components/UnitDesignViews/UnitDesignListView";
 import { useReviewedState } from "@/lib/useReviewedState";
 import { useIssueState } from "@/lib/useIssueState";
+import { useUser } from "@/lib/useUser";
+import { useActivityLog } from "@/lib/useActivityLog";
 import { useState, useRef, useEffect } from "react";
 
 type Section = "payment-plans" | "unit-designs";
@@ -39,6 +41,8 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const { currentUser } = useUser();
+  const activityLog = useActivityLog();
   const paymentPlanState = useReviewedState(releaseId || "", "payment-plan");
   const unitDesignState = useReviewedState(releaseId || "", "unit-design");
   const paymentPlanIssues = useIssueState(releaseId || "", "payment-plan");
@@ -294,33 +298,85 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
                       {paginatedPaymentPlans.map((plan) => {
                     const isReviewed = paymentPlanState.isReviewed(plan.id);
                     const issues = paymentPlanIssues.getIssues(plan.id);
+                    const reviewRecord = paymentPlanState.getReviewRecord(plan.id);
 
                     return (
                       <PaymentPlanCard
                         key={plan.id}
                         plan={plan}
                         isReviewed={isReviewed}
+                        reviewRecord={reviewRecord}
                         onToggleReviewed={() => {
+                          if (!currentUser) return;
                           if (issues.length > 0) {
                             // If there are issues, show confirmation modal
                             return;
                           }
-                          paymentPlanState.toggleReviewed(plan.id);
+                          const wasReviewed = isReviewed;
+                          paymentPlanState.toggleReviewed(plan.id, currentUser.id, currentUser.name);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "payment-plan",
+                              itemId: plan.id,
+                              itemName: plan.name,
+                              activityType: wasReviewed ? "unapproved" : "approved",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                            });
+                          }
                         }}
                         hasIssues={paymentPlanIssues.hasIssues(plan.id)}
                         latestIssue={paymentPlanIssues.getLatestIssue(plan.id)}
                         onIssueSubmit={(text, file) => {
+                          if (!currentUser) return;
                           if (isReviewed) {
-                            paymentPlanState.toggleReviewed(plan.id);
+                            paymentPlanState.toggleReviewed(plan.id, currentUser.id, currentUser.name);
                           }
-                          paymentPlanIssues.addIssue(plan.id, text, file?.name || null, file?.size || null);
+                          paymentPlanIssues.addIssue(plan.id, text, file?.name || null, file?.size || null, currentUser.id, currentUser.name);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "payment-plan",
+                              itemId: plan.id,
+                              itemName: plan.name,
+                              activityType: "flagged",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                              details: text,
+                            });
+                          }
                         }}
                         onResolveIssue={() => {
+                          if (!currentUser) return;
                           paymentPlanIssues.removeIssues(plan.id);
-                          paymentPlanState.toggleReviewed(plan.id);
+                          paymentPlanState.toggleReviewed(plan.id, currentUser.id, currentUser.name);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "payment-plan",
+                              itemId: plan.id,
+                              itemName: plan.name,
+                              activityType: "issue_resolved",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                            });
+                          }
                         }}
                         onDeleteIssue={() => {
+                          if (!currentUser) return;
                           paymentPlanIssues.removeIssues(plan.id);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "payment-plan",
+                              itemId: plan.id,
+                              itemName: plan.name,
+                              activityType: "issue_deleted",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                            });
+                          }
                         }}
                         units={release.units}
                         unitDesigns={release.unitDesigns}
@@ -478,33 +534,85 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
                       {paginatedUnitDesigns.map((design) => {
                     const isReviewed = unitDesignState.isReviewed(design.id);
                     const issues = unitDesignIssues.getIssues(design.id);
+                    const reviewRecord = unitDesignState.getReviewRecord(design.id);
 
                     return (
                       <UnitDesignListView
                         key={design.id}
                         unitDesign={design}
                         isReviewed={isReviewed}
+                        reviewRecord={reviewRecord}
                         onToggleReviewed={() => {
+                          if (!currentUser) return;
                           if (issues.length > 0) {
                             // If there are issues, show confirmation modal
                             return;
                           }
-                          unitDesignState.toggleReviewed(design.id);
+                          const wasReviewed = isReviewed;
+                          unitDesignState.toggleReviewed(design.id, currentUser.id, currentUser.name);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "unit-design",
+                              itemId: design.id,
+                              itemName: design.name,
+                              activityType: wasReviewed ? "unapproved" : "approved",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                            });
+                          }
                         }}
                         hasIssues={unitDesignIssues.hasIssues(design.id)}
                         latestIssue={unitDesignIssues.getLatestIssue(design.id)}
                         onIssueSubmit={(text, file) => {
+                          if (!currentUser) return;
                           if (isReviewed) {
-                            unitDesignState.toggleReviewed(design.id);
+                            unitDesignState.toggleReviewed(design.id, currentUser.id, currentUser.name);
                           }
-                          unitDesignIssues.addIssue(design.id, text, file?.name || null, file?.size || null);
+                          unitDesignIssues.addIssue(design.id, text, file?.name || null, file?.size || null, currentUser.id, currentUser.name);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "unit-design",
+                              itemId: design.id,
+                              itemName: design.name,
+                              activityType: "flagged",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                              details: text,
+                            });
+                          }
                         }}
                         onResolveIssue={() => {
+                          if (!currentUser) return;
                           unitDesignIssues.removeIssues(design.id);
-                          unitDesignState.toggleReviewed(design.id);
+                          unitDesignState.toggleReviewed(design.id, currentUser.id, currentUser.name);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "unit-design",
+                              itemId: design.id,
+                              itemName: design.name,
+                              activityType: "issue_resolved",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                            });
+                          }
                         }}
                         onDeleteIssue={() => {
+                          if (!currentUser) return;
                           unitDesignIssues.removeIssues(design.id);
+                          if (release) {
+                            activityLog.addActivity({
+                              releaseId: release.id,
+                              itemType: "unit-design",
+                              itemId: design.id,
+                              itemName: design.name,
+                              activityType: "issue_deleted",
+                              userId: currentUser.id,
+                              userName: currentUser.name,
+                            });
+                          }
                         }}
                         units={release.units}
                       />

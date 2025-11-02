@@ -10,6 +10,7 @@ interface IssueModalProps {
   itemName: string;
   initialText?: string;
   initialFileName?: string | null;
+  createdBy?: string | null;
 }
 
 export default function IssueModal({
@@ -19,6 +20,7 @@ export default function IssueModal({
   itemName,
   initialText = "",
   initialFileName = null,
+  createdBy = null,
 }: IssueModalProps) {
   const [issueText, setIssueText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -129,6 +131,9 @@ export default function IssueModal({
               <div>
                 <h2 className="text-2xl font-bold text-red-900">Flag Issue</h2>
                 <p className="text-red-700 text-sm mt-1">{itemName}</p>
+                {createdBy && initialText && (
+                  <p className="text-red-600 text-xs mt-1">Created by {createdBy}</p>
+                )}
               </div>
               <button
                 onClick={onClose}

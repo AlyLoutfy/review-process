@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAllReleases } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
-import { Plus, Calendar, Building2, Copy, Check, AlertCircle, CreditCard } from "lucide-react";
+import { Plus, Calendar, Building2, Copy, Check, AlertCircle, CreditCard, History } from "lucide-react";
 
 type Filter = "all" | "pending" | "reviewed" | "flagged";
 
@@ -16,6 +16,8 @@ interface ReleaseStatus {
 }
 
 // Helper function to get release status from localStorage
+// This matches the same logic used in useReviewedState and useIssueState
+// IMPORTANT: Only counts items that actually exist in the release to prevent stale data issues
 const getReleaseStatus = (release: Release): ReleaseStatus => {
   if (typeof window === "undefined") {
     return { reviewedCount: 0, totalCount: 0, hasIssues: false, isComplete: false };
@@ -24,25 +26,29 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
   let reviewedCount = 0;
   let hasIssues = false;
 
-  // Check payment plans
+  // Create sets of valid item IDs for validation
+  const validPaymentPlanIds = new Set(release.paymentPlans.map(p => p.id));
+  const validUnitDesignIds = new Set(release.unitDesigns.map(d => d.id));
+
+  // Check payment plans - reviewed items
   const ppReviewedKey = `reviewed-${release.id}-payment-plan`;
-  const ppIssuesKey = `issues-${release.id}-payment-plan`;
   try {
     const ppReviewed = localStorage.getItem(ppReviewedKey);
     if (ppReviewed) {
-      const ids = JSON.parse(ppReviewed);
-      reviewedCount += ids.length;
-    }
-    const ppIssues = localStorage.getItem(ppIssuesKey);
-    if (ppIssues) {
-      const issuesMap = JSON.parse(ppIssues);
-      // issuesMap is an array of [id, issues[]] pairs
-      // Check if any item actually has issues
-      if (Array.isArray(issuesMap)) {
-        for (const [, itemIssues] of issuesMap) {
-          if (Array.isArray(itemIssues) && itemIssues.length > 0) {
-            hasIssues = true;
-            break;
+      const data = JSON.parse(ppReviewed);
+      if (Array.isArray(data)) {
+        if (data.length > 0) {
+          // Check if it's the old format (just IDs as strings)
+          if (typeof data[0] === 'string') {
+            // Only count IDs that exist in the release
+            reviewedCount += data.filter((id: string) => validPaymentPlanIds.has(id)).length;
+          } else if (Array.isArray(data[0]) && data[0].length === 2) {
+            // Compact or full format: [[id, ...], ...]
+            // Only count IDs that exist in the release
+            reviewedCount += data.filter((entry: [string, unknown]) => {
+              const [itemId] = entry;
+              return validPaymentPlanIds.has(itemId);
+            }).length;
           }
         }
       }
@@ -51,25 +57,79 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
     // Ignore errors
   }
 
-  // Check unit designs
+  // Check payment plans - issues
+  const ppIssuesKey = `issues-${release.id}-payment-plan`;
+  try {
+    const ppIssues = localStorage.getItem(ppIssuesKey);
+    if (ppIssues) {
+      const data = JSON.parse(ppIssues);
+      // issuesMap is an array of [id, issues[]] pairs
+      if (Array.isArray(data) && data.length > 0) {
+        for (const entry of data) {
+          if (Array.isArray(entry) && entry.length === 2) {
+            const [itemId, itemIssues] = entry;
+            // Only check issues for items that exist in the release
+            if (validPaymentPlanIds.has(itemId)) {
+              // itemIssues is either an array of Issue objects or compact format arrays
+              if (Array.isArray(itemIssues) && itemIssues.length > 0) {
+                hasIssues = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore errors
+  }
+
+  // Check unit designs - reviewed items
   const udReviewedKey = `reviewed-${release.id}-unit-design`;
-  const udIssuesKey = `issues-${release.id}-unit-design`;
   try {
     const udReviewed = localStorage.getItem(udReviewedKey);
     if (udReviewed) {
-      const ids = JSON.parse(udReviewed);
-      reviewedCount += ids.length;
+      const data = JSON.parse(udReviewed);
+      if (Array.isArray(data)) {
+        if (data.length > 0) {
+          // Check if it's the old format (just IDs as strings)
+          if (typeof data[0] === 'string') {
+            // Only count IDs that exist in the release
+            reviewedCount += data.filter((id: string) => validUnitDesignIds.has(id)).length;
+          } else if (Array.isArray(data[0]) && data[0].length === 2) {
+            // Compact or full format: [[id, ...], ...]
+            // Only count IDs that exist in the release
+            reviewedCount += data.filter((entry: [string, unknown]) => {
+              const [itemId] = entry;
+              return validUnitDesignIds.has(itemId);
+            }).length;
+          }
+        }
+      }
     }
+  } catch {
+    // Ignore errors
+  }
+
+  // Check unit designs - issues
+  const udIssuesKey = `issues-${release.id}-unit-design`;
+  try {
     const udIssues = localStorage.getItem(udIssuesKey);
     if (udIssues) {
-      const issuesMap = JSON.parse(udIssues);
+      const data = JSON.parse(udIssues);
       // issuesMap is an array of [id, issues[]] pairs
-      // Check if any item actually has issues
-      if (Array.isArray(issuesMap)) {
-        for (const [, itemIssues] of issuesMap) {
-          if (Array.isArray(itemIssues) && itemIssues.length > 0) {
-            hasIssues = true;
-            break;
+      if (Array.isArray(data) && data.length > 0) {
+        for (const entry of data) {
+          if (Array.isArray(entry) && entry.length === 2) {
+            const [itemId, itemIssues] = entry;
+            // Only check issues for items that exist in the release
+            if (validUnitDesignIds.has(itemId)) {
+              // itemIssues is either an array of Issue objects or compact format arrays
+              if (Array.isArray(itemIssues) && itemIssues.length > 0) {
+                hasIssues = true;
+                break;
+              }
+            }
           }
         }
       }
@@ -79,6 +139,8 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
   }
 
   const totalCount = release.paymentPlans.length + release.unitDesigns.length;
+  // Ensure reviewedCount never exceeds totalCount (defensive check)
+  reviewedCount = Math.min(reviewedCount, totalCount);
   const isComplete = reviewedCount === totalCount && !hasIssues;
 
   return { reviewedCount, totalCount, hasIssues, isComplete };
@@ -171,7 +233,8 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        {/* Releases List */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -309,6 +372,15 @@ export default function Home() {
                           </div>
                         </Link>
                         <div className="ml-4 flex items-center gap-2">
+                          <Link 
+                            href={`/review/${release.id}/history`}
+                            onClick={(e) => e.stopPropagation()} 
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900" 
+                            title="View review history" 
+                            aria-label="View review history"
+                          >
+                            <History className="w-5 h-5" />
+                          </Link>
                           <Link href={`/releases/new/${release.id}`} onClick={(e) => e.stopPropagation()} className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900" title="Edit release" aria-label="Edit release">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -325,7 +397,7 @@ export default function Home() {
               </div>
             );
           })()}
-        </div>
+          </div>
       </div>
     </div>
   );
