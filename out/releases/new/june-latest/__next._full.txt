@@ -1,8 +1,8 @@
 1:"$Sreact.fragment"
 9:I[68027,[],"default"]
-:HL["/_next/static/chunks/e7970eac00465bae.css","style"]
-:HL["/_next/static/media/797e433ab948586e-s.p.dbea232f.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-:HL["/_next/static/media/caa3a2e1cccd8315-s.p.853070df.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/review-process/_next/static/chunks/e7970eac00465bae.css","style"]
+:HL["/review-process/_next/static/media/797e433ab948586e-s.p.dbea232f.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/review-process/_next/static/media/caa3a2e1cccd8315-s.p.853070df.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 2:Tc45,
               (function() {
                 console.log('=== Deployment Debug Info ===');
@@ -62,22 +62,22 @@
                 console.log('Base tag:', document.querySelector('base') ? document.querySelector('base').href : 'None');
                 console.log('=== End Debug Info ===');
               })();
-            0:{"P":null,"b":"JMsgWEE7b0OcNG3d-5aHR","c":["","releases","new","june-latest",""],"q":"","i":false,"f":[[["",{"children":["releases",{"children":["new",{"children":[["releaseId","june-latest","d"],{"children":["__PAGE__",{}]}]}]}]},"$undefined","$undefined",true],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/e7970eac00465bae.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","suppressHydrationWarning":true,"children":[["$","head",null,{"children":["$","script",null,{"dangerouslySetInnerHTML":{"__html":"$2"}}]}],"$L3"]}]]}],{"children":["$L4",{"children":["$L5",{"children":["$L6",{"children":["$L7",{},null,false,false]},null,false,false]},null,false,false]},null,false,false]},null,false,false],"$L8",false]],"m":"$undefined","G":["$9",[]],"s":false,"S":true}
-a:I[39756,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"default"]
-b:I[37457,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"default"]
-d:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
+            0:{"P":null,"b":"tyChKXrTke2Eun5tYHFyJ","c":["","releases","new","june-latest",""],"q":"","i":false,"f":[[["",{"children":["releases",{"children":["new",{"children":[["releaseId","june-latest","d"],{"children":["__PAGE__",{}]}]}]}]},"$undefined","$undefined",true],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/review-process/_next/static/chunks/e7970eac00465bae.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"en","suppressHydrationWarning":true,"children":[["$","head",null,{"children":["$","script",null,{"dangerouslySetInnerHTML":{"__html":"$2"}}]}],"$L3"]}]]}],{"children":["$L4",{"children":["$L5",{"children":["$L6",{"children":["$L7",{},null,false,false]},null,false,false]},null,false,false]},null,false,false]},null,false,false],"$L8",false]],"m":"$undefined","G":["$9",[]],"s":false,"S":true}
+a:I[39756,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+b:I[37457,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+d:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
 e:"$Sreact.suspense"
-10:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"ViewportBoundary"]
-12:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"MetadataBoundary"]
+10:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"ViewportBoundary"]
+12:I[97367,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"MetadataBoundary"]
 3:["$","body",null,{"className":"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable antialiased","suppressHydrationWarning":true,"children":["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]
 4:["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}]
 5:["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}]
 6:["$","$1","c",{"children":[null,["$","$La",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$Lb",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}]
-7:["$","$1","c",{"children":["$Lc",[["$","script","script-0",{"src":"/_next/static/chunks/03a7f80bb30e349a.js","async":true,"nonce":"$undefined"}]],["$","$Ld",null,{"children":["$","$e",null,{"name":"Next.MetadataOutlet","children":"$@f"}]}]]}]
+7:["$","$1","c",{"children":["$Lc",[["$","script","script-0",{"src":"/review-process/_next/static/chunks/03a7f80bb30e349a.js","async":true,"nonce":"$undefined"}]],["$","$Ld",null,{"children":["$","$e",null,{"name":"Next.MetadataOutlet","children":"$@f"}]}]]}]
 8:["$","$1","h",{"children":[null,["$","$L10",null,{"children":"$@11"}],["$","div",null,{"hidden":true,"children":["$","$L12",null,{"children":["$","$e",null,{"name":"Next.Metadata","children":"$@13"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}]
-14:I[40541,["/_next/static/chunks/03a7f80bb30e349a.js"],"default"]
+14:I[40541,["/review-process/_next/static/chunks/03a7f80bb30e349a.js"],"default"]
 c:["$","$L14",null,{"releaseId":"june-latest"}]
 11:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
-15:I[27201,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"IconMark"]
-13:[["$","title","0",{"children":"Sodic Releases Dashboard"}],["$","meta","1",{"name":"description","content":"Manage and review releases for Sodic"}],["$","link","2",{"rel":"icon","href":"/favicon.ico?favicon.0b3bf435.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L15","3",{}]]
+15:I[27201,["/review-process/_next/static/chunks/ff1a16fafef87110.js","/review-process/_next/static/chunks/247eb132b7f7b574.js"],"IconMark"]
+13:[["$","title","0",{"children":"Sodic Releases Dashboard"}],["$","meta","1",{"name":"description","content":"Manage and review releases for Sodic"}],["$","link","2",{"rel":"icon","href":"/review-process/favicon.ico?favicon.0b3bf435.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L15","3",{}]]
 f:null

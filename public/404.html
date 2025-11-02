@@ -44,15 +44,20 @@
         function redirectToIndex() {
           // Redirect to root and let Next.js router handle client-side routing
           var originalPath = path + search + hash;
+          // Remove basePath from path if present
+          var basePath = "/review-process";
+          if (originalPath.startsWith(basePath)) {
+            originalPath = originalPath.substring(basePath.length) || "/";
+          }
           if (originalPath !== "/" && originalPath !== "/index.html") {
             // Store original path for Next.js router to pick up
             sessionStorage.setItem("nextjs-redirect", originalPath);
           }
-          window.location.replace("/");
+          window.location.replace(basePath + "/");
         }
       })();
     </script>
-    <meta http-equiv="refresh" content="0;url=/" />
+    <meta http-equiv="refresh" content="0;url=/review-process/" />
   </head>
   <body>
     <p>Redirecting...</p>

@@ -16,9 +16,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // If deploying to a subdirectory (e.g., https://username.github.io/repo-name)
-  // Uncomment and set the basePath:
-  // basePath: "/repo-name",
+  // Required for GitHub Pages subdirectory deployment
+  basePath: "/review-process",
 };
 
 export default nextConfig;
