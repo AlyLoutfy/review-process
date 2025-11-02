@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { allUnitDesigns, allPaymentPlans, saveRelease, generateUnits, getReleaseById } from "@/lib/mockData";
+import { allUnitDesigns, allPaymentPlans, saveRelease, generateUnits, getReleaseById, generateReleaseId } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -86,7 +86,7 @@ export default function EditReleasePageClient({ releaseId }: { releaseId: string
 
       // Create or update release
       const releaseData: Release = {
-        id: existingRelease ? existingRelease.id : releaseName.toLowerCase().replace(/\s+/g, "-") + "-" + compoundName.toLowerCase().replace(/\s+/g, "-"),
+        id: existingRelease ? existingRelease.id : generateReleaseId(releaseName, compoundName),
         compoundName: compoundName.trim(),
         releaseName: releaseName.trim(),
         releaseDate: releaseDate,
