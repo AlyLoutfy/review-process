@@ -8,46 +8,53 @@
       // When GitHub Pages can't find a file, it serves this 404.html
       // We redirect to index.html and let Next.js router handle the route
       (function () {
-        console.log("[404.html] DEBUG - Starting redirect handler");
         var path = window.location.pathname;
         var search = window.location.search;
         var hash = window.location.hash;
-        
-        console.log("[404.html] DEBUG - Original path:", path);
-        console.log("[404.html] DEBUG - Search:", search);
-        console.log("[404.html] DEBUG - Hash:", hash);
 
-        // Remove trailing slash for consistency
+        // Remove trailing slash for consistency (Next.js router will handle it)
         if (path !== "/" && path.endsWith("/")) {
           path = path.slice(0, -1);
-          console.log("[404.html] DEBUG - Removed trailing slash, new path:", path);
         }
 
-        // IMMEDIATELY redirect - don't wait for fetch checks
-        var originalPath = path + search + hash;
-        console.log("[404.html] DEBUG - Original path before basePath removal:", originalPath);
-        
-        // Remove basePath from path if present
-        var basePath = "/review-process";
-        if (originalPath.startsWith(basePath)) {
-          originalPath = originalPath.substring(basePath.length) || "/";
-          console.log("[404.html] DEBUG - After basePath removal:", originalPath);
-        }
-        
-        // Always store the original path (unless it's already root/index)
-        if (originalPath !== "/" && originalPath !== "/index.html" && originalPath !== "") {
-          console.log("[404.html] DEBUG - Storing redirect in sessionStorage:", originalPath);
-          sessionStorage.setItem("nextjs-redirect", originalPath);
+        // Try to access the path directly first (in case it exists as index.html)
+        // If the path doesn't end with .html, try with /index.html
+        if (!path.endsWith(".html") && path !== "/") {
+          // Check if it's a directory path that should have index.html
+          var indexPath = path + "/index.html";
+          // Try to fetch it first
+          fetch(indexPath, { method: "HEAD" })
+            .then(function (response) {
+              if (response.ok) {
+                // The index.html exists, redirect to it
+                window.location.replace(path + "/" + search + hash);
+              } else {
+                // Doesn't exist, let Next.js router handle it
+                redirectToIndex();
+              }
+            })
+            .catch(function () {
+              // Fetch failed, redirect to index and let Next.js handle it
+              redirectToIndex();
+            });
         } else {
-          console.log("[404.html] DEBUG - Path is root/index, not storing redirect");
+          redirectToIndex();
         }
-        
-        // Immediately redirect to basePath root
-        var redirectUrl = basePath + "/";
-        console.log("[404.html] DEBUG - Redirecting IMMEDIATELY to:", redirectUrl);
-        
-        // Use location.replace for immediate redirect (doesn't add to history)
-        window.location.replace(redirectUrl);
+
+        function redirectToIndex() {
+          // Redirect to root and let Next.js router handle client-side routing
+          var originalPath = path + search + hash;
+          // Remove basePath from path if present
+          var basePath = "/review-process";
+          if (originalPath.startsWith(basePath)) {
+            originalPath = originalPath.substring(basePath.length) || "/";
+          }
+          if (originalPath !== "/" && originalPath !== "/index.html") {
+            // Store original path for Next.js router to pick up
+            sessionStorage.setItem("nextjs-redirect", originalPath);
+          }
+          window.location.replace(basePath + "/");
+        }
       })();
     </script>
     <meta http-equiv="refresh" content="0;url=/review-process/" />

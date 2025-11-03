@@ -26,13 +26,13 @@ export default function EditReleasePageClient({ releaseId: initialReleaseId }: {
       const newIndex = cleanSegments.indexOf("new");
       if (newIndex >= 0 && newIndex + 1 < cleanSegments.length) {
         const id = cleanSegments[newIndex + 1].replace(/\/$/, "");
-        if (id && id !== "fallback") setExtractedReleaseId(id);
+        if (id) setExtractedReleaseId(id);
       }
     }
   }, [pathname]);
 
   const actualReleaseId = extractedReleaseId || initialReleaseId || "";
-  const [existingRelease, setExistingRelease] = useState<Release | null>(null);
+  const existingRelease = actualReleaseId ? getReleaseById(actualReleaseId) : null;
 
   const [releaseName, setReleaseName] = useState("");
   const [compoundName, setCompoundName] = useState("");
@@ -42,35 +42,21 @@ export default function EditReleasePageClient({ releaseId: initialReleaseId }: {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load existing release and pre-populate form if editing
+  // Pre-populate form if editing
   useEffect(() => {
-    const loadRelease = async () => {
-      if (actualReleaseId && typeof window !== "undefined") {
-        try {
-          const loadedRelease = await getReleaseById(actualReleaseId);
-          if (loadedRelease) {
-            setExistingRelease(loadedRelease);
-            // Batch state updates to avoid cascading renders
-            requestAnimationFrame(() => {
-              setReleaseName(loadedRelease.releaseName);
-              setCompoundName(loadedRelease.compoundName);
-              setReleaseDate(loadedRelease.releaseDate);
-              setSelectedUnitDesignIds(new Set(loadedRelease.unitDesigns.map((d) => d.id)));
-              setSelectedPaymentPlanIds(new Set(loadedRelease.paymentPlans.map((p) => p.id)));
-              setIsLoading(false);
-            });
-          } else {
-            setIsLoading(false);
-          }
-        } catch (error) {
-          setIsLoading(false);
-        }
-      } else {
+    if (existingRelease && typeof window !== "undefined") {
+      // Batch state updates to avoid cascading renders
+      requestAnimationFrame(() => {
+        setReleaseName(existingRelease.releaseName);
+        setCompoundName(existingRelease.compoundName);
+        setReleaseDate(existingRelease.releaseDate);
+        setSelectedUnitDesignIds(new Set(existingRelease.unitDesigns.map((d) => d.id)));
+        setSelectedPaymentPlanIds(new Set(existingRelease.paymentPlans.map((p) => p.id)));
         setIsLoading(false);
-      }
-    };
-    
-    loadRelease();
+      });
+    } else {
+      setIsLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actualReleaseId]);
 
@@ -131,7 +117,7 @@ export default function EditReleasePageClient({ releaseId: initialReleaseId }: {
       };
 
       // Save release
-      await saveRelease(releaseData);
+      saveRelease(releaseData);
 
       // Redirect to review page
       router.push(`/review/${releaseData.id}/`);

@@ -1,13 +1,7 @@
 import type { NextConfig } from "next";
 
-// Only use static export in production builds
-// In dev mode, disable it to avoid strict route validation
-const isDev = process.env.NODE_ENV === "development";
-
 const nextConfig: NextConfig = {
-  // Disable static export in dev mode to avoid route validation issues
-  // Production builds will still use static export for GitHub Pages
-  ...(!isDev ? { output: "export" } : {}),
+  output: "export",
   trailingSlash: true, // Generate /path/index.html instead of /path.html for better GitHub Pages compatibility
   images: {
     unoptimized: true,

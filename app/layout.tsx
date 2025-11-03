@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import DatabaseInit from "@/components/DatabaseInit";
-import ClientRouter from "@/components/ClientRouter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,8 +25,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
-        <DatabaseInit />
-        <ClientRouter />
         {children}
       </body>
     </html>

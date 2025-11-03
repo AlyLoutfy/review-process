@@ -43,16 +43,47 @@ export interface Release {
 
 // Using Picsum Photos with seed - each seed always returns the same image
 // This ensures consistent images and guaranteed loading
-const REAL_ESTATE_IMAGES = ["https://picsum.photos/seed/1/400/400", "https://picsum.photos/seed/2/400/400", "https://picsum.photos/seed/3/400/400", "https://picsum.photos/seed/4/400/400", "https://picsum.photos/seed/5/400/400", "https://picsum.photos/seed/6/400/400", "https://picsum.photos/seed/7/400/400", "https://picsum.photos/seed/8/400/400", "https://picsum.photos/seed/9/400/400", "https://picsum.photos/seed/10/400/400", "https://picsum.photos/seed/11/400/400", "https://picsum.photos/seed/12/400/400", "https://picsum.photos/seed/13/400/400", "https://picsum.photos/seed/14/400/400", "https://picsum.photos/seed/15/400/400", "https://picsum.photos/seed/16/400/400", "https://picsum.photos/seed/17/400/400", "https://picsum.photos/seed/18/400/400", "https://picsum.photos/seed/19/400/400", "https://picsum.photos/seed/20/400/400", "https://picsum.photos/seed/21/400/400", "https://picsum.photos/seed/22/400/400", "https://picsum.photos/seed/23/400/400", "https://picsum.photos/seed/24/400/400", "https://picsum.photos/seed/25/400/400", "https://picsum.photos/seed/26/400/400", "https://picsum.photos/seed/27/400/400", "https://picsum.photos/seed/28/400/400", "https://picsum.photos/seed/29/400/400", "https://picsum.photos/seed/30/400/400"];
+const REAL_ESTATE_IMAGES = [
+  'https://picsum.photos/seed/1/400/400',
+  'https://picsum.photos/seed/2/400/400',
+  'https://picsum.photos/seed/3/400/400',
+  'https://picsum.photos/seed/4/400/400',
+  'https://picsum.photos/seed/5/400/400',
+  'https://picsum.photos/seed/6/400/400',
+  'https://picsum.photos/seed/7/400/400',
+  'https://picsum.photos/seed/8/400/400',
+  'https://picsum.photos/seed/9/400/400',
+  'https://picsum.photos/seed/10/400/400',
+  'https://picsum.photos/seed/11/400/400',
+  'https://picsum.photos/seed/12/400/400',
+  'https://picsum.photos/seed/13/400/400',
+  'https://picsum.photos/seed/14/400/400',
+  'https://picsum.photos/seed/15/400/400',
+  'https://picsum.photos/seed/16/400/400',
+  'https://picsum.photos/seed/17/400/400',
+  'https://picsum.photos/seed/18/400/400',
+  'https://picsum.photos/seed/19/400/400',
+  'https://picsum.photos/seed/20/400/400',
+  'https://picsum.photos/seed/21/400/400',
+  'https://picsum.photos/seed/22/400/400',
+  'https://picsum.photos/seed/23/400/400',
+  'https://picsum.photos/seed/24/400/400',
+  'https://picsum.photos/seed/25/400/400',
+  'https://picsum.photos/seed/26/400/400',
+  'https://picsum.photos/seed/27/400/400',
+  'https://picsum.photos/seed/28/400/400',
+  'https://picsum.photos/seed/29/400/400',
+  'https://picsum.photos/seed/30/400/400',
+];
 
 // Fallback image that will always work
-const FALLBACK_IMAGE = "https://picsum.photos/seed/999/400/400";
+const FALLBACK_IMAGE = 'https://picsum.photos/seed/999/400/400';
 
 // Mock data for June compound
 const generateMockImages = (count: number, prefix: string): string[] => {
   // Generate unique images by using prefix to offset the index, ensuring variety
-  const prefixOffset = prefix ? prefix.split("-").reduce((acc, part) => acc + part.charCodeAt(0), 0) : 0;
-
+  const prefixOffset = prefix ? prefix.split('-').reduce((acc, part) => acc + part.charCodeAt(0), 0) : 0;
+  
   return Array.from({ length: count }, (_, i) => {
     const imageIndex = (i + prefixOffset) % REAL_ESTATE_IMAGES.length;
     return REAL_ESTATE_IMAGES[imageIndex];
@@ -166,10 +197,14 @@ export const allUnitDesigns: UnitDesign[] = (() => {
     // Generate amenities based on unit type and index for variety
     // Larger units and penthouses typically have more amenities
     const baseAmenityCount = Math.min(2 + Math.floor(unit.beds / 2), 5);
-    const isPenthouse = unit.name.toLowerCase().includes("penthouse");
-    const isVilla = unit.name.toLowerCase().includes("villa");
-    const amenityCount = isPenthouse || isVilla ? baseAmenityCount + 2 : unit.name.toLowerCase().includes("corner") || unit.name.toLowerCase().includes("deluxe") ? baseAmenityCount + 1 : baseAmenityCount;
-
+    const isPenthouse = unit.name.toLowerCase().includes('penthouse');
+    const isVilla = unit.name.toLowerCase().includes('villa');
+    const amenityCount = isPenthouse || isVilla 
+      ? baseAmenityCount + 2 
+      : unit.name.toLowerCase().includes('corner') || unit.name.toLowerCase().includes('deluxe')
+      ? baseAmenityCount + 1
+      : baseAmenityCount;
+    
     // Select amenities based on index for consistency
     const selectedAmenities: string[] = [];
     const startIndex = (index * 3) % AVAILABLE_AMENITIES.length;
@@ -177,7 +212,7 @@ export const allUnitDesigns: UnitDesign[] = (() => {
       const amenityIndex = (startIndex + i) % AVAILABLE_AMENITIES.length;
       selectedAmenities.push(AVAILABLE_AMENITIES[amenityIndex]);
     }
-
+    
     return {
       id: `unit-design-${index + 1}`,
       name: unit.name,
@@ -201,35 +236,35 @@ const generateUnitDesigns = (): UnitDesign[] => {
 export const generateUnits = (unitDesigns: UnitDesign[]): Unit[] => {
   const units: Unit[] = [];
   let globalUnitIndex = 1; // Start from PE-01 and increment
-
+  
   // Generate multiple units for each unit design with varying prices
   unitDesigns.forEach((design, designIndex) => {
     // Generate 3-8 units per design type (using design index for consistency)
     const unitCount = 3 + (designIndex % 6);
-
+    
     // Base price calculation based on BUA (roughly 8000-12000 per sqm)
     // Use design index to create consistent pricing
     const basePricePerSqm = 8000 + ((designIndex * 233) % 4000);
     const basePrice = design.bua * basePricePerSqm;
-
+    
     for (let i = 0; i < unitCount; i++) {
       // Add some variation to price (±5%) using consistent calculation
       const priceVariation = 0.95 + ((designIndex + i) % 10) * 0.01;
       const unitPrice = Math.round(basePrice * priceVariation);
-
+      
       // Generate realistic unit ID like "PE-07", "PE-08", etc.
-      const unitId = `PE-${String(globalUnitIndex).padStart(2, "0")}`;
-
+      const unitId = `PE-${String(globalUnitIndex).padStart(2, '0')}`;
+      
       units.push({
         id: unitId,
         price: unitPrice,
         unitDesignId: design.id,
       });
-
+      
       globalUnitIndex++;
     }
   });
-
+  
   return units;
 };
 
@@ -266,24 +301,28 @@ const ensureAmenities = (unitDesigns: UnitDesign[]): UnitDesign[] => {
     if (design.amenities && design.amenities.length > 0) {
       return design;
     }
-
+    
     // Otherwise, generate amenities for this design
     const baseAmenityCount = Math.min(2 + Math.floor(design.beds / 2), 5);
     const name = design.name.toLowerCase();
-    const isPenthouse = name.includes("penthouse");
-    const isVilla = name.includes("villa");
-    const amenityCount = isPenthouse || isVilla ? baseAmenityCount + 2 : name.includes("corner") || name.includes("deluxe") ? baseAmenityCount + 1 : baseAmenityCount;
-
+    const isPenthouse = name.includes('penthouse');
+    const isVilla = name.includes('villa');
+    const amenityCount = isPenthouse || isVilla 
+      ? baseAmenityCount + 2 
+      : name.includes('corner') || name.includes('deluxe')
+      ? baseAmenityCount + 1
+      : baseAmenityCount;
+    
     // Use design ID hash to generate consistent amenities
-    const idHash = design.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const idHash = design.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const startIndex = (idHash * 3) % AVAILABLE_AMENITIES.length;
     const selectedAmenities: string[] = [];
-
+    
     for (let i = 0; i < amenityCount && i < AVAILABLE_AMENITIES.length; i++) {
       const amenityIndex = (startIndex + i) % AVAILABLE_AMENITIES.length;
       selectedAmenities.push(AVAILABLE_AMENITIES[amenityIndex]);
     }
-
+    
     return {
       ...design,
       amenities: selectedAmenities,
@@ -291,126 +330,120 @@ const ensureAmenities = (unitDesigns: UnitDesign[]): UnitDesign[] => {
   });
 };
 
-// Function to get all releases from IndexedDB (or mock data for SSR)
-export const getAllReleases = async (): Promise<Release[]> => {
+// Function to get all releases (from localStorage or mock data)
+export const getAllReleases = (): Release[] => {
   if (typeof window === "undefined") return mockReleases;
-
+  
   try {
-    const { dbReleases } = await import("./database");
-    const releases = await dbReleases.getAll();
-
-    // Generate units for each release and ensure amenities exist
-    releases.forEach((release) => {
-      if (!release.units || release.units.length === 0) {
-        release.units = generateUnits(release.unitDesigns);
-      }
-      // Ensure all unit designs have amenities (for backward compatibility)
-      release.unitDesigns = ensureAmenities(release.unitDesigns);
-      // Ensure createdAt exists for sorting (backward compatibility)
-      if (!release.createdAt) {
-        release.createdAt = new Date().toISOString();
-      }
-    });
-
-    // Already sorted by createdAt descending in dbReleases.getAll()
-    return releases;
+    const stored = localStorage.getItem("releases");
+    if (stored) {
+      const releases = JSON.parse(stored) as Release[];
+      // Generate units for each release and ensure amenities exist
+      releases.forEach((release) => {
+        if (!release.units || release.units.length === 0) {
+          release.units = generateUnits(release.unitDesigns);
+        }
+        // Ensure all unit designs have amenities (for backward compatibility)
+        release.unitDesigns = ensureAmenities(release.unitDesigns);
+        // Ensure createdAt exists for sorting (backward compatibility)
+        if (!release.createdAt) {
+          release.createdAt = new Date().toISOString();
+        }
+      });
+      // Sort by createdAt descending (newest first)
+      return releases.sort((a, b) => {
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      });
+    }
   } catch {
-    // Error loading releases from IndexedDB, return mock data
-    return mockReleases;
+    // Error loading releases from localStorage
   }
+  
+  // Sort mock releases by ID (they have timestamps in ID) or return as-is
+  return mockReleases;
 };
 
-// Synchronous version for compatibility (returns mock data, will be updated by components)
-export const getAllReleasesSync = (): Release[] => {
-  if (typeof window === "undefined") return mockReleases;
-  return mockReleases; // Components should use async version
-};
-
-// Function to save a release to IndexedDB
-export const saveRelease = async (release: Release): Promise<void> => {
+// Function to save a release
+export const saveRelease = (release: Release): void => {
   if (typeof window === "undefined") return;
-
+  
   try {
-    const { dbReleases } = await import("./database");
-
-    // Check if release exists
-    const existing = await dbReleases.getById(release.id);
-
-    // Preserve createdAt if updating, or set it if new
-    const releaseWithTimestamp = {
-      ...release,
-      createdAt: existing?.createdAt || release.createdAt || new Date().toISOString(),
-    };
-
+    const releases = getAllReleases();
+    const existingIndex = releases.findIndex((r) => r.id === release.id);
+    
+    if (existingIndex >= 0) {
+      // Update existing release - preserve createdAt if it exists, otherwise set it
+      releases[existingIndex] = {
+        ...release,
+        createdAt: releases[existingIndex].createdAt || release.createdAt || new Date().toISOString(),
+      };
+    } else {
+      // New release - add createdAt timestamp
+      releases.push({
+        ...release,
+        createdAt: release.createdAt || new Date().toISOString(),
+      });
+    }
+    
     // Generate units for the release
-    releaseWithTimestamp.units = generateUnits(release.unitDesigns);
-
-    // Save to IndexedDB
-    await dbReleases.save(releaseWithTimestamp);
-  } catch (error) {
-    throw error;
+    releases[existingIndex >= 0 ? existingIndex : releases.length - 1].units = generateUnits(release.unitDesigns);
+    
+    localStorage.setItem("releases", JSON.stringify(releases));
+  } catch {
+    // Error saving release to localStorage
   }
 };
 
 // Function to create a new release ID
 export const generateReleaseId = (releaseName: string, compoundName: string): string => {
   const base = `${compoundName.toLowerCase()}-${releaseName.toLowerCase()}`;
-  return base.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + `-${Date.now()}`;
+  return base
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") + `-${Date.now()}`;
 };
 
-// Async version - get release by ID from IndexedDB
-export const getReleaseById = async (releaseId: string): Promise<Release | undefined> => {
-  if (typeof window === "undefined") {
-    return mockReleases.find((release) => release.id === releaseId);
-  }
-
-  try {
-    const { dbReleases } = await import("./database");
-    const release = await dbReleases.getById(releaseId);
-    if (release) {
-      // Ensure units and amenities
-      if (!release.units || release.units.length === 0) {
-        release.units = generateUnits(release.unitDesigns);
-      }
-      release.unitDesigns = ensureAmenities(release.unitDesigns);
-    }
-    return release;
-  } catch {
-    // Fallback to mock data
-    return mockReleases.find((release) => release.id === releaseId);
-  }
+export const getReleaseById = (releaseId: string): Release | undefined => {
+  const releases = getAllReleases();
+  return releases.find((release) => release.id === releaseId);
 };
 
-// Synchronous version for compatibility (returns undefined, components should use async)
-export const getReleaseByIdSync = (releaseId: string): Release | undefined => {
-  if (typeof window === "undefined") {
-    return mockReleases.find((release) => release.id === releaseId);
-  }
-  return undefined; // Components should use async version
-};
-
-// Function to delete a release and clean up all related data from IndexedDB
-export const deleteRelease = async (releaseId: string): Promise<void> => {
+// Function to delete a release and clean up all related data
+export const deleteRelease = (releaseId: string): void => {
   if (typeof window === "undefined") return;
-
+  
   try {
-    const { dbReleases, dbReviewed, dbIssues, dbActivityLog } = await import("./database");
-
-    // Delete the release
-    await dbReleases.delete(releaseId);
-
-    // Clean up all related data for this release
+    // Delete the release from storage
+    const releases = getAllReleases();
+    const filteredReleases = releases.filter((r) => r.id !== releaseId);
+    localStorage.setItem("releases", JSON.stringify(filteredReleases));
+    
+    // Clean up all related localStorage data for this release
     // Reviewed states
-    await dbReviewed.delete(`reviewed-${releaseId}-payment-plan`);
-    await dbReviewed.delete(`reviewed-${releaseId}-unit-design`);
-
+    localStorage.removeItem(`reviewed-${releaseId}-payment-plan`);
+    localStorage.removeItem(`reviewed-${releaseId}-unit-design`);
+    
     // Issues
-    await dbIssues.delete(`issues-${releaseId}-payment-plan`);
-    await dbIssues.delete(`issues-${releaseId}-unit-design`);
-
-    // Delete activity logs for this release - use deleteByRelease method
-    await dbActivityLog.deleteByRelease(releaseId);
-  } catch (error) {
-    throw error;
+    localStorage.removeItem(`issues-${releaseId}-payment-plan`);
+    localStorage.removeItem(`issues-${releaseId}-unit-design`);
+    
+    // Activity logs - remove activities for this release
+    const activityLogKey = "review-process-activity-logs";
+    const storedActivities = localStorage.getItem(activityLogKey);
+    if (storedActivities) {
+      try {
+        const activities = JSON.parse(storedActivities);
+        const filteredActivities = activities.filter(
+          (activity: { releaseId: string }) => activity.releaseId !== releaseId
+        );
+        localStorage.setItem(activityLogKey, JSON.stringify(filteredActivities));
+      } catch {
+        // Error parsing activities, ignore
+      }
+    }
+  } catch {
+    // Error deleting release
   }
 };
+

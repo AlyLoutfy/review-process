@@ -102,11 +102,10 @@ export default function CreateReleasePage() {
       };
 
       // Save release
-      await saveRelease(releaseData);
+      saveRelease(releaseData);
 
       // Show success message with link instead of redirecting
       setCreatedReleaseId(releaseData.id);
-      setIsSubmitting(false);
     } catch {
       alert("Failed to create release. Please try again.");
       setIsSubmitting(false);

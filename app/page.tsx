@@ -161,61 +161,49 @@ export default function Home() {
 
   // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
-    const loadData = async () => {
-      if (typeof window !== "undefined") {
-        // Handle client-side routing from 404.html redirect
-        // If we're on the home page but have a redirect path, navigate to it
-        const redirectPath = sessionStorage.getItem("nextjs-redirect");
-        console.log("[Home Page] DEBUG - Checking for redirect:", redirectPath);
-        console.log("[Home Page] DEBUG - Current pathname:", window.location.pathname);
-        
-        if (redirectPath && (window.location.pathname === "/review-process/" || window.location.pathname === "/review-process")) {
-          console.log("[Home Page] DEBUG - Found redirect path, navigating to:", redirectPath);
-          sessionStorage.removeItem("nextjs-redirect");
-          
-          // Build full path with basePath
-          const basePath = "/review-process";
-          const fullPath = redirectPath.startsWith(basePath) ? redirectPath : basePath + redirectPath;
-          console.log("[Home Page] DEBUG - Full redirect path:", fullPath);
-          
-          // Use window.location for immediate navigation
-          window.location.href = fullPath;
-          return; // Don't load data if redirecting
-        }
-
-        const allReleases = await getAllReleases();
-        setReleases(allReleases);
-
-        // Calculate statuses for all releases
-        const statuses = new Map<string, ReleaseStatus>();
-        allReleases.forEach((release) => {
-          statuses.set(release.id, getReleaseStatus(release));
-        });
-        setReleaseStatuses(statuses);
-        setIsHydrated(true);
+    if (typeof window !== "undefined") {
+      // Handle client-side routing from 404.html redirect
+      const redirectPath = sessionStorage.getItem("nextjs-redirect");
+      if (redirectPath) {
+        sessionStorage.removeItem("nextjs-redirect");
+        // Update browser history to the original path
+        // Next.js router will handle the routing when the page loads
+        window.history.replaceState({}, "", redirectPath);
+        // Trigger a navigation event that Next.js will pick up
+        window.dispatchEvent(new PopStateEvent("popstate"));
       }
-    };
 
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const allReleases = getAllReleases();
+      setReleases(allReleases);
 
-  // Refresh statuses periodically (IndexedDB doesn't have storage events across tabs)
-  useEffect(() => {
-    const refreshStatuses = async () => {
-      const allReleases = await getAllReleases();
+      // Calculate statuses for all releases
       const statuses = new Map<string, ReleaseStatus>();
       allReleases.forEach((release) => {
         statuses.set(release.id, getReleaseStatus(release));
       });
       setReleaseStatuses(statuses);
-      setReleases(allReleases);
+      setIsHydrated(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Refresh statuses when localStorage changes (listen for storage events)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const allReleases = getAllReleases();
+      const statuses = new Map<string, ReleaseStatus>();
+      allReleases.forEach((release) => {
+        statuses.set(release.id, getReleaseStatus(release));
+      });
+      setReleaseStatuses(statuses);
     };
 
-    // Poll periodically to catch changes
-    const interval = setInterval(refreshStatuses, 2000);
+    window.addEventListener("storage", handleStorageChange);
+    // Also poll periodically to catch same-window changes
+    const interval = setInterval(handleStorageChange, 1000);
 
     return () => {
+      window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
     };
   }, []);
@@ -441,11 +429,11 @@ export default function Home() {
         <DeleteReleaseModal
           isOpen={!!deleteModalRelease}
           onClose={() => setDeleteModalRelease(null)}
-          onConfirm={async () => {
+          onConfirm={() => {
             if (deleteModalRelease) {
-              await deleteRelease(deleteModalRelease.id);
+              deleteRelease(deleteModalRelease.id);
               // Refresh releases and statuses
-              const allReleases = await getAllReleases();
+              const allReleases = getAllReleases();
               setReleases(allReleases);
               const statuses = new Map<string, ReleaseStatus>();
               allReleases.forEach((release) => {

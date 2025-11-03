@@ -64,7 +64,7 @@ export default function ReleaseHistoryPageClient({ releaseId: initialReleaseId }
       const reviewIndex = cleanSegments.indexOf("review");
       if (reviewIndex >= 0 && reviewIndex + 1 < cleanSegments.length) {
         const id = cleanSegments[reviewIndex + 1].replace(/\/$/, "");
-        if (id && id !== "fallback") setExtractedReleaseId(id);
+        if (id) setExtractedReleaseId(id);
       }
     }
   }, [pathname]);
@@ -73,21 +73,15 @@ export default function ReleaseHistoryPageClient({ releaseId: initialReleaseId }
 
   // Load release on client side
   useEffect(() => {
-    const loadRelease = async () => {
-      if (actualReleaseId && typeof window !== "undefined") {
-        try {
-          const loadedRelease = await getReleaseById(actualReleaseId);
-          setRelease(loadedRelease);
-          setIsLoading(false);
-        } catch (error) {
-          setIsLoading(false);
-        }
-      } else {
+    if (actualReleaseId && typeof window !== "undefined") {
+      requestAnimationFrame(() => {
+        const loadedRelease = getReleaseById(actualReleaseId);
+        setRelease(loadedRelease);
         setIsLoading(false);
-      }
-    };
-
-    loadRelease();
+      });
+    } else {
+      setIsLoading(false);
+    }
   }, [actualReleaseId]);
 
   useEffect(() => {

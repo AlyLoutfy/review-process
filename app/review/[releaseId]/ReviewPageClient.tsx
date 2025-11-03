@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { getReleaseById, type Release } from "@/lib/mockData";
+import { getReleaseById } from "@/lib/mockData";
 import PaymentPlanCard from "@/components/PaymentPlanCard";
 import UnitDesignListView from "@/components/UnitDesignViews/UnitDesignListView";
 import { useReviewedState } from "@/lib/useReviewedState";
@@ -34,15 +34,12 @@ export default function ReviewPageClient({ releaseId: initialReleaseId }: { rele
       
       // Find segment after "review"
       const reviewIndex = cleanSegments.indexOf("review");
-      
       if (reviewIndex >= 0 && reviewIndex + 1 < cleanSegments.length) {
         // Get the releaseId (next segment after "review")
         let id = cleanSegments[reviewIndex + 1];
-        
         // Remove any trailing slashes
         id = id.replace(/\/$/, "");
-        
-        if (id && id !== "fallback") {
+        if (id) {
           setExtractedReleaseId(id);
         }
       }
@@ -51,7 +48,8 @@ export default function ReviewPageClient({ releaseId: initialReleaseId }: { rele
   
   // Use extracted releaseId from URL (primary), fallback to prop if needed
   // This ensures we always have a valid releaseId regardless of route validation
-  const releaseId = extractedReleaseId || initialReleaseId || "";
+  const actualReleaseId = extractedReleaseId || initialReleaseId || "";
+
   const [activeSection, setActiveSection] = useState<Section>("unit-designs");
   const [filter, setFilter] = useState<Filter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,47 +58,30 @@ export default function ReviewPageClient({ releaseId: initialReleaseId }: { rele
   const paymentPlansTabRef = useRef<HTMLButtonElement>(null);
   const unitDesignsTabRef = useRef<HTMLButtonElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 });
-  const [release, setRelease] = useState<Release | undefined>(undefined);
+  const [release, setRelease] = useState<ReturnType<typeof getReleaseById>>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load release on client side to avoid hydration mismatch
   useEffect(() => {
-    const loadRelease = async () => {
-      console.log("[ReviewPageClient] DEBUG - Loading release, releaseId:", releaseId);
-      console.log("[ReviewPageClient] DEBUG - window check:", typeof window !== "undefined");
-      console.log("[ReviewPageClient] DEBUG - isFallback:", releaseId === "fallback");
-      
-      if (releaseId && typeof window !== "undefined" && releaseId !== "fallback") {
-        try {
-          console.log("[ReviewPageClient] DEBUG - Calling getReleaseById with:", releaseId);
-          const loadedRelease = await getReleaseById(releaseId);
-          console.log("[ReviewPageClient] DEBUG - Loaded release:", loadedRelease ? {
-            id: loadedRelease.id,
-            name: loadedRelease.releaseName,
-            compound: loadedRelease.compoundName
-          } : "null");
-          setRelease(loadedRelease);
-          setIsLoading(false);
-        } catch (error) {
-          console.error("[ReviewPageClient] DEBUG - Error loading release:", error);
-          setIsLoading(false);
-        }
-      } else {
-        console.log("[ReviewPageClient] DEBUG - Skipping load (no releaseId, no window, or fallback)");
+    if (actualReleaseId && typeof window !== "undefined") {
+      // Use requestAnimationFrame to avoid synchronous state updates in effect
+      requestAnimationFrame(() => {
+        const loadedRelease = getReleaseById(actualReleaseId);
+        setRelease(loadedRelease);
         setIsLoading(false);
-      }
-    };
-    
-    loadRelease();
+      });
+    } else {
+      setIsLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [releaseId]);
+  }, [actualReleaseId]);
 
   const { currentUser } = useUser();
   const activityLog = useActivityLog();
-  const paymentPlanState = useReviewedState(releaseId || "", "payment-plan");
-  const unitDesignState = useReviewedState(releaseId || "", "unit-design");
-  const paymentPlanIssues = useIssueState(releaseId || "", "payment-plan");
-  const unitDesignIssues = useIssueState(releaseId || "", "unit-design");
+  const paymentPlanState = useReviewedState(actualReleaseId || "", "payment-plan");
+  const unitDesignState = useReviewedState(actualReleaseId || "", "unit-design");
+  const paymentPlanIssues = useIssueState(actualReleaseId || "", "payment-plan");
+  const unitDesignIssues = useIssueState(actualReleaseId || "", "unit-design");
 
   // Update indicator position when active section changes or component mounts
   useEffect(() => {

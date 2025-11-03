@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { dbReviewed } from "./database";
 
 export interface ReviewRecord {
   itemId: string;
@@ -16,16 +15,28 @@ export function useReviewedState(releaseId: string, itemType: "payment-plan" | "
   const [reviewedRecords, setReviewedRecords] = useState<Map<string, ReviewRecord>>(new Map());
 
   useEffect(() => {
-    const loadFromIndexedDB = async () => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
       try {
-        const data = await dbReviewed.get(storageKey);
-        
-        if (data && Array.isArray(data)) {
+        const data = JSON.parse(stored);
+        // Handle multiple formats: old array format, compact format, or full format
+        if (Array.isArray(data)) {
           const newMap = new Map<string, ReviewRecord>();
           
           if (data.length > 0) {
-            // Compact format: [[id, [userId, userName, timestamp]], ...]
-            if (Array.isArray(data[0]) && data[0].length === 2) {
+            // Check if it's the old format (just IDs)
+            if (typeof data[0] === 'string') {
+              // Old format - convert to new format
+              data.forEach((id: string) => {
+                newMap.set(id, {
+                  itemId: id,
+                  userId: "unknown",
+                  userName: "Unknown User",
+                  timestamp: new Date().toISOString(),
+                });
+              });
+            } else if (Array.isArray(data[0]) && data[0].length === 2) {
+              // Compact format: [[id, [userId, userName, timestamp]], ...]
               data.forEach((entry: [string, string[] | ReviewRecord]) => {
                 const [itemId, recordData] = entry;
                 if (Array.isArray(recordData)) {
@@ -54,17 +65,13 @@ export function useReviewedState(releaseId: string, itemType: "payment-plan" | "
             setReviewedRecords(newMap);
           });
         }
-      } catch (error) {
-        // Silently fail - errors are handled internally
+      } catch {
+        // Invalid storage, start fresh
       }
-    };
-
-    if (typeof window !== "undefined") {
-      loadFromIndexedDB();
     }
   }, [storageKey]);
 
-  const toggleReviewed = async (id: string, userId: string, userName: string) => {
+  const toggleReviewed = (id: string, userId: string, userName: string) => {
     setReviewedRecords((prev) => {
       const newMap = new Map(prev);
       if (newMap.has(id)) {
@@ -77,21 +84,27 @@ export function useReviewedState(releaseId: string, itemType: "payment-plan" | "
           timestamp: new Date().toISOString(),
         });
       }
-      
-      // Save to IndexedDB
-      (async () => {
+      try {
+        // Store in compact format: [id, [userId, userName, timestamp]]
+        const compactData = Array.from(newMap.entries()).map(([itemId, record]) => [
+          itemId,
+          [record.userId, record.userName, record.timestamp]
+        ]);
+        localStorage.setItem(storageKey, JSON.stringify(compactData));
+      } catch (error) {
+        // If quota exceeded, try to clean up and store only essential data
         try {
-          // Store in compact format: [id, [userId, userName, timestamp]]
-          const compactData = Array.from(newMap.entries()).map(([itemId, record]) => [
+          // Store only userId and userName, skip timestamp
+          const minimalData = Array.from(newMap.entries()).map(([itemId, record]) => [
             itemId,
-            [record.userId, record.userName, record.timestamp]
+            [record.userId, record.userName]
           ]);
-          await dbReviewed.set(storageKey, compactData);
-        } catch (error) {
-          // Silently fail - errors are handled internally
+          localStorage.setItem(storageKey, JSON.stringify(minimalData));
+        } catch {
+          // If still failing, clear and start fresh
+          localStorage.removeItem(storageKey);
         }
-      })();
-      
+      }
       return newMap;
     });
   };

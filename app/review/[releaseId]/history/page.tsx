@@ -1,10 +1,33 @@
-import ReleaseHistoryPageClientWrapper from "./ReleaseHistoryPageClientWrapper";
+import ReleaseHistoryPageClient from "./ReleaseHistoryPageClient";
+import { getAllReleases } from "@/lib/mockData";
 
-// Server component with generateStaticParams - required for static export
-export async function generateStaticParams() {
-  return [{ releaseId: "fallback" }];
+// Generate static params for static export (required by Next.js)
+// In dev mode, tries to read from localStorage to include all existing releases
+// At build time, uses mock releases as fallbacks
+export function generateStaticParams() {
+  let releaseIds: string[] = [];
+  
+  // In dev mode, try to read from localStorage if available
+  if (typeof window !== "undefined") {
+    try {
+      const releases = getAllReleases();
+      releaseIds = releases.map((r) => r.id);
+    } catch {
+      releaseIds = ["june-latest", "june-phase-2"];
+    }
+  } else {
+    releaseIds = ["june-latest", "june-phase-2"];
+  }
+  
+  if (!releaseIds.includes("fallback")) {
+    releaseIds.push("fallback");
+  }
+  
+  return releaseIds.map((id) => ({ releaseId: id }));
 }
 
 export default async function ReleaseHistoryPage({ params }: { params: Promise<{ releaseId: string }> }) {
-  return <ReleaseHistoryPageClientWrapper />;
+  const { releaseId } = await params;
+  return <ReleaseHistoryPageClient releaseId={releaseId} />;
 }
+

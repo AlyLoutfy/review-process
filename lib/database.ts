@@ -5,11 +5,11 @@ import { Release } from "./mockData";
 
 const DB_NAME = "review-process-db";
 const DB_VERSION = 1;
-export const STORE_RELEASES = "releases";
-export const STORE_REVIEWED = "reviewed";
-export const STORE_ISSUES = "issues";
-export const STORE_ACTIVITY_LOG = "activityLog";
-export const STORE_USERS = "users";
+const STORE_RELEASES = "releases";
+const STORE_REVIEWED = "reviewed";
+const STORE_ISSUES = "issues";
+const STORE_ACTIVITY_LOG = "activityLog";
+const STORE_USERS = "users";
 
 interface DB {
   db: IDBDatabase | null;
@@ -119,7 +119,7 @@ export const dbReleases = {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([STORE_RELEASES], "readwrite");
       const store = transaction.objectStore(STORE_RELEASES);
-
+      
       // Ensure createdAt exists
       const releaseWithTimestamp = {
         ...release,
@@ -198,9 +198,7 @@ export const dbActivityLog = {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([STORE_ACTIVITY_LOG], "readwrite");
       const store = transaction.objectStore(STORE_ACTIVITY_LOG);
-      // Remove id from activity before adding (IndexedDB will auto-generate)
-      const { id, ...activityWithoutId } = activity;
-      const request = store.add(activityWithoutId);
+      const request = store.add(activity);
 
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
@@ -215,16 +213,7 @@ export const dbActivityLog = {
       const index = store.index("releaseId");
       const request = index.getAll(releaseId);
 
-      request.onsuccess = () => {
-        const activities = request.result;
-        // Sort by timestamp descending
-        activities.sort((a, b) => {
-          const timeA = new Date(a.timestamp || 0).getTime();
-          const timeB = new Date(b.timestamp || 0).getTime();
-          return timeB - timeA;
-        });
-        resolve(activities);
-      };
+      request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
   },
@@ -249,33 +238,85 @@ export const dbActivityLog = {
       request.onerror = () => reject(request.error);
     });
   },
+};
 
-  deleteByRelease: async (releaseId: string): Promise<void> => {
-    const db = await getDB();
-    return new Promise(async (resolve, reject) => {
+// Migration: Import data from localStorage to IndexedDB
+export const migrateFromLocalStorage = async (): Promise<void> => {
+  if (typeof window === "undefined") return;
+
+  try {
+    await initDB();
+
+    // Migrate releases
+    const releasesJSON = localStorage.getItem("releases");
+    if (releasesJSON) {
       try {
-        // Get all activities for this release
-        const allActivities = await dbActivityLog.getByRelease(releaseId);
-
-        // Delete each activity
-        const transaction = db.transaction([STORE_ACTIVITY_LOG], "readwrite");
-        const store = transaction.objectStore(STORE_ACTIVITY_LOG);
-
-        const deletePromises = allActivities.map((activity) => {
-          return new Promise<void>((resolve, reject) => {
-            const request = store.delete(activity.id);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-          });
-        });
-
-        await Promise.all(deletePromises);
-        resolve();
-      } catch (error) {
-        reject(error);
+        const releases = JSON.parse(releasesJSON) as Release[];
+        for (const release of releases) {
+          await dbReleases.save(release);
+        }
+        console.log(`Migrated ${releases.length} releases to IndexedDB`);
+      } catch (e) {
+        console.error("Error migrating releases:", e);
       }
-    });
-  },
+    }
+
+    // Migrate reviewed states
+    const reviewedKeys = Object.keys(localStorage).filter((key) => key.startsWith("reviewed-"));
+    for (const key of reviewedKeys) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        try {
+          await dbReviewed.set(key, JSON.parse(value));
+        } catch (e) {
+          console.error(`Error migrating reviewed key ${key}:`, e);
+        }
+      }
+    }
+
+    // Migrate issues
+    const issueKeys = Object.keys(localStorage).filter((key) => key.startsWith("issues-"));
+    for (const key of issueKeys) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        try {
+          await dbIssues.set(key, JSON.parse(value));
+        } catch (e) {
+          console.error(`Error migrating issues key ${key}:`, e);
+        }
+      }
+    }
+
+    // Migrate activity log
+    const activityLogJSON = localStorage.getItem("activity-log");
+    if (activityLogJSON) {
+      try {
+        const activities = JSON.parse(activityLogJSON);
+        for (const activity of activities) {
+          await dbActivityLog.add(activity);
+        }
+      } catch (e) {
+        console.error("Error migrating activity log:", e);
+      }
+    }
+
+    // Migrate users
+    const userKeys = Object.keys(localStorage).filter((key) => key.includes("user"));
+    for (const key of userKeys) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        try {
+          await dbUsers.set(key, JSON.parse(value));
+        } catch (e) {
+          console.error(`Error migrating user key ${key}:`, e);
+        }
+      }
+    }
+
+    console.log("Migration from localStorage to IndexedDB completed");
+  } catch (error) {
+    console.error("Migration error:", error);
+  }
 };
 
 // Export database to JSON file
@@ -345,7 +386,7 @@ export const importDatabase = async (jsonData: string): Promise<void> => {
 
   // Clear existing data
   const db = await getDB();
-
+  
   // Clear all stores
   const clearStore = (storeName: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -398,4 +439,6 @@ export const importDatabase = async (jsonData: string): Promise<void> => {
     }
   }
 
+  console.log("Database import completed");
 };
+
