@@ -34,6 +34,14 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Verify build output
+        run: |
+          echo "Verifying build output..."
+          ls -la out/ | head -10
+          test -f out/index.html && echo "✓ index.html exists" || echo "✗ index.html missing"
+          test -f out/.nojekyll && echo "✓ .nojekyll exists" || echo "✗ .nojekyll missing"
+          test -f out/404.html && echo "✓ 404.html exists" || echo "✗ 404.html missing"
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
