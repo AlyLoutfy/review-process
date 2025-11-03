@@ -28,8 +28,8 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
   let hasIssues = false;
 
   // Create sets of valid item IDs for validation
-  const validPaymentPlanIds = new Set(release.paymentPlans.map(p => p.id));
-  const validUnitDesignIds = new Set(release.unitDesigns.map(d => d.id));
+  const validPaymentPlanIds = new Set(release.paymentPlans.map((p) => p.id));
+  const validUnitDesignIds = new Set(release.unitDesigns.map((d) => d.id));
 
   // Check payment plans - reviewed items
   const ppReviewedKey = `reviewed-${release.id}-payment-plan`;
@@ -40,7 +40,7 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
       if (Array.isArray(data)) {
         if (data.length > 0) {
           // Check if it's the old format (just IDs as strings)
-          if (typeof data[0] === 'string') {
+          if (typeof data[0] === "string") {
             // Only count IDs that exist in the release
             reviewedCount += data.filter((id: string) => validPaymentPlanIds.has(id)).length;
           } else if (Array.isArray(data[0]) && data[0].length === 2) {
@@ -94,7 +94,7 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
       if (Array.isArray(data)) {
         if (data.length > 0) {
           // Check if it's the old format (just IDs as strings)
-          if (typeof data[0] === 'string') {
+          if (typeof data[0] === "string") {
             // Only count IDs that exist in the release
             reviewedCount += data.filter((id: string) => validUnitDesignIds.has(id)).length;
           } else if (Array.isArray(data[0]) && data[0].length === 2) {
@@ -161,49 +161,52 @@ export default function Home() {
 
   // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Handle client-side routing from 404.html redirect
-      const redirectPath = sessionStorage.getItem('nextjs-redirect');
-      if (redirectPath) {
-        sessionStorage.removeItem('nextjs-redirect');
-        // Update browser history to the original path
-        // Next.js router will handle the routing when the page loads
-        window.history.replaceState({}, '', redirectPath);
-        // Trigger a navigation event that Next.js will pick up
-        window.dispatchEvent(new PopStateEvent('popstate'));
+    const loadData = async () => {
+      if (typeof window !== "undefined") {
+        // Handle client-side routing from 404.html redirect
+        const redirectPath = sessionStorage.getItem("nextjs-redirect");
+        if (redirectPath) {
+          sessionStorage.removeItem("nextjs-redirect");
+          // Update browser history to the original path
+          // Next.js router will handle the routing when the page loads
+          window.history.replaceState({}, "", redirectPath);
+          // Trigger a navigation event that Next.js will pick up
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        }
+
+        const allReleases = await getAllReleases();
+        setReleases(allReleases);
+
+        // Calculate statuses for all releases
+        const statuses = new Map<string, ReleaseStatus>();
+        allReleases.forEach((release) => {
+          statuses.set(release.id, getReleaseStatus(release));
+        });
+        setReleaseStatuses(statuses);
+        setIsHydrated(true);
       }
+    };
 
-      const allReleases = getAllReleases();
-      setReleases(allReleases);
-
-      // Calculate statuses for all releases
-      const statuses = new Map<string, ReleaseStatus>();
-      allReleases.forEach((release) => {
-        statuses.set(release.id, getReleaseStatus(release));
-      });
-      setReleaseStatuses(statuses);
-      setIsHydrated(true);
-    }
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Refresh statuses when localStorage changes (listen for storage events)
+  // Refresh statuses periodically (IndexedDB doesn't have storage events across tabs)
   useEffect(() => {
-    const handleStorageChange = () => {
-      const allReleases = getAllReleases();
+    const refreshStatuses = async () => {
+      const allReleases = await getAllReleases();
       const statuses = new Map<string, ReleaseStatus>();
       allReleases.forEach((release) => {
         statuses.set(release.id, getReleaseStatus(release));
       });
       setReleaseStatuses(statuses);
+      setReleases(allReleases);
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    // Also poll periodically to catch same-window changes
-    const interval = setInterval(handleStorageChange, 1000);
+    // Poll periodically to catch changes
+    const interval = setInterval(refreshStatuses, 2000);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
     };
   }, []);
@@ -238,7 +241,7 @@ export default function Home() {
         </div>
 
         {/* Releases List */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -272,180 +275,168 @@ export default function Home() {
                 Create Your First Release
               </Link>
             </div>
-          ) : (() => {
-            const filteredReleases = releases.filter((release) => {
-              if (!isHydrated) return true; // Show all during SSR/hydration
-              const status = releaseStatuses.get(release.id);
-              if (!status) return filter === "all";
-              if (filter === "pending") {
-                return !status.isComplete;
-              }
-              if (filter === "reviewed") {
-                return status.isComplete;
-              }
-              if (filter === "flagged") {
-                return status.hasIssues;
-              }
-              return true;
-            });
+          ) : (
+            (() => {
+              const filteredReleases = releases.filter((release) => {
+                if (!isHydrated) return true; // Show all during SSR/hydration
+                const status = releaseStatuses.get(release.id);
+                if (!status) return filter === "all";
+                if (filter === "pending") {
+                  return !status.isComplete;
+                }
+                if (filter === "reviewed") {
+                  return status.isComplete;
+                }
+                if (filter === "flagged") {
+                  return status.hasIssues;
+                }
+                return true;
+              });
 
-            if (filteredReleases.length === 0) {
+              if (filteredReleases.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-16 px-4">
+                    <div className="text-6xl mb-4">🔍</div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Nothing to see here!</h3>
+                    <p className="text-gray-600 text-center max-w-md">No releases match your current filter. Try selecting a different filter option.</p>
+                  </div>
+                );
+              }
+
               return (
-                <div className="flex flex-col items-center justify-center py-16 px-4">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Nothing to see here!</h3>
-                  <p className="text-gray-600 text-center max-w-md">
-                    No releases match your current filter. Try selecting a different filter option.
-                  </p>
-                </div>
-              );
-            }
+                <div className="divide-y divide-gray-200">
+                  {filteredReleases.map((release) => {
+                    // Use default status during SSR/hydration, then use actual status
+                    const defaultStatus = {
+                      reviewedCount: 0,
+                      totalCount: release.paymentPlans.length + release.unitDesigns.length,
+                      hasIssues: false,
+                      isComplete: false,
+                    };
+                    const status = isHydrated ? releaseStatuses.get(release.id) || defaultStatus : defaultStatus;
+                    const progressPercentage = status.totalCount > 0 ? Math.round((status.reviewedCount / status.totalCount) * 100) : 0;
 
-            return (
-              <div className="divide-y divide-gray-200">
-                {filteredReleases.map((release) => {
-                  // Use default status during SSR/hydration, then use actual status
-                  const defaultStatus = {
-                    reviewedCount: 0,
-                    totalCount: release.paymentPlans.length + release.unitDesigns.length,
-                    hasIssues: false,
-                    isComplete: false,
-                  };
-                  const status = isHydrated ? (releaseStatuses.get(release.id) || defaultStatus) : defaultStatus;
-                  const progressPercentage = status.totalCount > 0 ? Math.round((status.reviewedCount / status.totalCount) * 100) : 0;
+                    // Determine row background color
+                    let rowBgClass = "bg-white";
+                    if (status.isComplete) {
+                      rowBgClass = "bg-green-50/40";
+                    } else if (status.hasIssues) {
+                      rowBgClass = "bg-red-50/40";
+                    }
 
-                  // Determine row background color
-                  let rowBgClass = "bg-white";
-                  if (status.isComplete) {
-                    rowBgClass = "bg-green-50/40";
-                  } else if (status.hasIssues) {
-                    rowBgClass = "bg-red-50/40";
-                  }
-
-                  return (
-                    <div key={release.id} className={`p-6 transition-colors ${rowBgClass} hover:opacity-90`}>
-                      <div className="flex items-start justify-between">
-                        <Link href={`/review/${release.id}`} className="flex-1 cursor-pointer">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full uppercase tracking-wider">{release.compoundName}</span>
-                            <h3 className="text-xl font-semibold text-gray-900">{release.releaseName}</h3>
-                            {status.hasIssues && (
-                              <div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                                <AlertCircle className="w-3 h-3" />
-                                Issues
-                              </div>
-                            )}
-                            {status.isComplete && (
-                              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                                <Check className="w-3 h-3" />
-                                Complete
-                              </div>
-                            )}
-                          </div>
+                    return (
+                      <div key={release.id} className={`p-6 transition-colors ${rowBgClass} hover:opacity-90`}>
+                        <div className="flex items-start justify-between">
+                          <Link href={`/review/${release.id}/`} className="flex-1 cursor-pointer">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full uppercase tracking-wider">{release.compoundName}</span>
+                              <h3 className="text-xl font-semibold text-gray-900">{release.releaseName}</h3>
+                              {status.hasIssues && (
+                                <div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                                  <AlertCircle className="w-3 h-3" />
+                                  Issues
+                                </div>
+                              )}
+                              {status.isComplete && (
+                                <div className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                  <Check className="w-3 h-3" />
+                                  Complete
+                                </div>
+                              )}
+                            </div>
                             <div className="flex items-center gap-6 text-sm text-gray-600 mt-2 mb-3">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              <span suppressHydrationWarning>
-                                {new Date(release.releaseDate).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                })}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                <span suppressHydrationWarning>
+                                  {new Date(release.releaseDate).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4" />
+                                {release.unitDesigns.length} Unit Designs
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="w-4 h-4" />
+                                <span className="text-gray-500">{release.paymentPlans.length} Payment Plans</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Building2 className="w-4 h-4" />
-                              {release.unitDesigns.length} Unit Designs
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <CreditCard className="w-4 h-4" />
-                              <span className="text-gray-500">{release.paymentPlans.length} Payment Plans</span>
-                            </div>
-                          </div>
-                          {/* Progress Bar */}
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-medium text-gray-700" suppressHydrationWarning>
-                                Progress: {status.reviewedCount} / {status.totalCount} reviewed
-                              </span>
-                              <span className="text-xs font-medium text-gray-600" suppressHydrationWarning>{progressPercentage}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className={`h-2 rounded-full transition-all ${status.isComplete ? "bg-green-600" : status.hasIssues ? "bg-red-500" : "bg-blue-600"}`} style={{ width: `${progressPercentage}%` }} suppressHydrationWarning />
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="ml-4 flex items-center gap-2">
-                          <Link 
-                            href={`/review/${release.id}/history`}
-                            onClick={(e) => e.stopPropagation()} 
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
-                            aria-label="View history"
-                          >
-                            <History className="w-5 h-5" />
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
-                              View history
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                            {/* Progress Bar */}
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-medium text-gray-700" suppressHydrationWarning>
+                                  Progress: {status.reviewedCount} / {status.totalCount} reviewed
+                                </span>
+                                <span className="text-xs font-medium text-gray-600" suppressHydrationWarning>
+                                  {progressPercentage}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className={`h-2 rounded-full transition-all ${status.isComplete ? "bg-green-600" : status.hasIssues ? "bg-red-500" : "bg-blue-600"}`} style={{ width: `${progressPercentage}%` }} suppressHydrationWarning />
+                              </div>
                             </div>
                           </Link>
-                          <Link 
-                            href={`/releases/new/${release.id}`} 
-                            onClick={(e) => e.stopPropagation()} 
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
-                            aria-label="Edit release"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
-                              Edit release
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
-                            </div>
-                          </Link>
-                          <button 
-                            onClick={(e) => copyReviewLink(release.id, e)} 
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
-                            aria-label="Copy review link"
-                          >
-                            {copiedReleaseId === release.id ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
-                              {copiedReleaseId === release.id ? "Link copied!" : "Copy review link"}
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
-                            </div>
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteModalRelease(release);
-                            }} 
-                            className="p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-gray-600 hover:text-red-600 relative group" 
-                            aria-label="Delete release"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
-                              Delete release
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
-                            </div>
-                          </button>
+                          <div className="ml-4 flex items-center gap-2">
+                            <Link href={`/review/${release.id}/history/`} onClick={(e) => e.stopPropagation()} className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" aria-label="View history">
+                              <History className="w-5 h-5" />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                                View history
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                              </div>
+                            </Link>
+                            <Link href={`/releases/new/${release.id}`} onClick={(e) => e.stopPropagation()} className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" aria-label="Edit release">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                                Edit release
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                              </div>
+                            </Link>
+                            <button onClick={(e) => copyReviewLink(release.id, e)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" aria-label="Copy review link">
+                              {copiedReleaseId === release.id ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                                {copiedReleaseId === release.id ? "Link copied!" : "Copy review link"}
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                              </div>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteModalRelease(release);
+                              }}
+                              className="p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-gray-600 hover:text-red-600 relative group"
+                              aria-label="Delete release"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
+                                Delete release
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
+                              </div>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-          </div>
+                    );
+                  })}
+                </div>
+              );
+            })()
+          )}
+        </div>
 
         {/* Delete Release Modal */}
         <DeleteReleaseModal
           isOpen={!!deleteModalRelease}
           onClose={() => setDeleteModalRelease(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             if (deleteModalRelease) {
-              deleteRelease(deleteModalRelease.id);
+              await deleteRelease(deleteModalRelease.id);
               // Refresh releases and statuses
-              const allReleases = getAllReleases();
+              const allReleases = await getAllReleases();
               setReleases(allReleases);
               const statuses = new Map<string, ReleaseStatus>();
               allReleases.forEach((release) => {

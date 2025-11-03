@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowLeft, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { getReleaseById } from "@/lib/mockData";
+import { getReleaseById, type Release } from "@/lib/mockData";
 import PaymentPlanCard from "@/components/PaymentPlanCard";
 import UnitDesignListView from "@/components/UnitDesignViews/UnitDesignListView";
 import { useReviewedState } from "@/lib/useReviewedState";
@@ -14,7 +15,43 @@ import { useState, useRef, useEffect } from "react";
 type Section = "payment-plans" | "unit-designs";
 type Filter = "all" | "reviewed" | "pending" | "flagged";
 
-export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
+export default function ReviewPageClient({ releaseId: initialReleaseId }: { releaseId: string }) {
+  const pathname = usePathname();
+  
+  // Always extract releaseId from URL pathname - this works for ANY route
+  // This is the primary source of truth to avoid Next.js route validation errors
+  const [extractedReleaseId, setExtractedReleaseId] = useState<string>("");
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Use window.location.pathname as the most reliable source
+      const fullPath = window.location.pathname;
+      const segments = fullPath.split("/").filter(Boolean);
+      
+      // Remove basePath if present (/review-process)
+      const basePathIndex = segments.indexOf("review-process");
+      const cleanSegments = basePathIndex >= 0 ? segments.slice(basePathIndex + 1) : segments;
+      
+      // Find segment after "review"
+      const reviewIndex = cleanSegments.indexOf("review");
+      
+      if (reviewIndex >= 0 && reviewIndex + 1 < cleanSegments.length) {
+        // Get the releaseId (next segment after "review")
+        let id = cleanSegments[reviewIndex + 1];
+        
+        // Remove any trailing slashes
+        id = id.replace(/\/$/, "");
+        
+        if (id && id !== "fallback") {
+          setExtractedReleaseId(id);
+        }
+      }
+    }
+  }, [pathname]);
+  
+  // Use extracted releaseId from URL (primary), fallback to prop if needed
+  // This ensures we always have a valid releaseId regardless of route validation
+  const releaseId = extractedReleaseId || initialReleaseId || "";
   const [activeSection, setActiveSection] = useState<Section>("unit-designs");
   const [filter, setFilter] = useState<Filter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,23 +60,28 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
   const paymentPlansTabRef = useRef<HTMLButtonElement>(null);
   const unitDesignsTabRef = useRef<HTMLButtonElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 });
-  const [release, setRelease] = useState<ReturnType<typeof getReleaseById>>(undefined);
+  const [release, setRelease] = useState<Release | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load release on client side to avoid hydration mismatch
   useEffect(() => {
-    if (releaseId && typeof window !== "undefined") {
-      // Use requestAnimationFrame to avoid synchronous state updates in effect
-      requestAnimationFrame(() => {
-        const loadedRelease = getReleaseById(releaseId);
-        setRelease(loadedRelease);
+    const loadRelease = async () => {
+      if (releaseId && typeof window !== "undefined" && releaseId !== "fallback") {
+        try {
+          const loadedRelease = await getReleaseById(releaseId);
+          setRelease(loadedRelease);
+          setIsLoading(false);
+        } catch (error) {
+          setIsLoading(false);
+        }
+      } else {
         setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
-    }
+      }
+    };
+    
+    loadRelease();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [releaseId]);
 
   const { currentUser } = useUser();
   const activityLog = useActivityLog();

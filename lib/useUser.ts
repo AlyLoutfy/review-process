@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext } from "react";
+import { dbUsers } from "./database";
 
 export interface User {
   id: string;
@@ -23,43 +24,47 @@ export function useUser() {
   const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Load current user
-      const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-      if (storedUser) {
+    const loadFromIndexedDB = async () => {
+      if (typeof window !== "undefined") {
         try {
-          const user = JSON.parse(storedUser);
-          setCurrentUser(user);
-        } catch {
-          // Invalid storage, use first default user
-          setCurrentUser(DEFAULT_USERS[0]);
-        }
-      } else {
-        // No user set, use first default user
-        setCurrentUser(DEFAULT_USERS[0]);
-      }
+          // Load current user
+          const storedUser = await dbUsers.get(USER_STORAGE_KEY);
+          if (storedUser) {
+            setCurrentUser(storedUser);
+          } else {
+            // No user set, use first default user
+            setCurrentUser(DEFAULT_USERS[0]);
+            await dbUsers.set(USER_STORAGE_KEY, DEFAULT_USERS[0]);
+          }
 
-      // Load all users
-      const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-      if (storedUsers) {
-        try {
-          const parsedUsers = JSON.parse(storedUsers);
-          setUsers(parsedUsers);
-        } catch {
+          // Load all users
+          const storedUsers = await dbUsers.get(USERS_STORAGE_KEY);
+          if (storedUsers && Array.isArray(storedUsers)) {
+            setUsers(storedUsers);
+          } else {
+            // Initialize with default users
+            await dbUsers.set(USERS_STORAGE_KEY, DEFAULT_USERS);
+            setUsers(DEFAULT_USERS);
+          }
+        } catch (error) {
+          // Fallback to defaults
+          setCurrentUser(DEFAULT_USERS[0]);
           setUsers(DEFAULT_USERS);
         }
-      } else {
-        // Initialize with default users
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
-        setUsers(DEFAULT_USERS);
       }
-    }
+    };
+
+    loadFromIndexedDB();
   }, []);
 
-  const setUser = (user: User) => {
+  const setUser = async (user: User) => {
     setCurrentUser(user);
     if (typeof window !== "undefined") {
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      try {
+        await dbUsers.set(USER_STORAGE_KEY, user);
+      } catch (error) {
+        // Silently fail - errors are handled internally
+      }
     }
   };
 
@@ -74,4 +79,3 @@ export function useUser() {
     getUserById,
   };
 }
-

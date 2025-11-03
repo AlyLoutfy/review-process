@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { dbActivityLog } from "./database";
 
 export type ActivityType = 
   | "approved" 
@@ -10,7 +11,7 @@ export type ActivityType =
   | "issue_deleted";
 
 export interface ActivityLog {
-  id: string;
+  id: string | number;
   releaseId: string;
   itemType: "payment-plan" | "unit-design";
   itemId: string;
@@ -22,41 +23,47 @@ export interface ActivityLog {
   details?: string; // For issue text or other details
 }
 
-const ACTIVITY_LOG_KEY = "review-process-activity-logs";
-
 export function useActivityLog() {
   const [activities, setActivities] = useState<ActivityLog[]>([]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(ACTIVITY_LOG_KEY);
-      if (stored) {
+    const loadFromIndexedDB = async () => {
+      if (typeof window !== "undefined") {
         try {
-          const data = JSON.parse(stored);
-          setActivities(data);
-        } catch {
-          // Invalid storage, start fresh
+          const data = await dbActivityLog.getAll();
+          // Convert to ActivityLog format (handle both string and number IDs)
+          const formatted = data.map((activity: any) => ({
+            ...activity,
+            id: activity.id?.toString() || `${Date.now()}-${Math.random()}`,
+          }));
+          setActivities(formatted);
+        } catch (error) {
           setActivities([]);
         }
       }
-    }
+    };
+
+    loadFromIndexedDB();
   }, []);
 
-  const addActivity = (log: Omit<ActivityLog, "id" | "timestamp">) => {
+  const addActivity = async (log: Omit<ActivityLog, "id" | "timestamp">) => {
     const newActivity: ActivityLog = {
       ...log,
       id: `${Date.now()}-${Math.random()}`,
       timestamp: new Date().toISOString(),
     };
 
+    // Save to IndexedDB
+    try {
+      await dbActivityLog.add(newActivity);
+    } catch (error) {
+      // Silently fail - errors are handled internally
+    }
+
     setActivities((prev) => {
       const updated = [newActivity, ...prev]; // Most recent first
-      // Keep only last 1000 activities to prevent localStorage bloat
-      const limited = updated.slice(0, 1000);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(limited));
-      }
-      return limited;
+      // Keep only last 1000 activities in memory to prevent bloat
+      return updated.slice(0, 1000);
     });
 
     return newActivity;
@@ -107,4 +114,3 @@ export function useActivityLog() {
     activities,
   };
 }
-

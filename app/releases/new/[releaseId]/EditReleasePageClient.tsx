@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { allUnitDesigns, allPaymentPlans, saveRelease, generateUnits, getReleaseById } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
 import { ArrowLeft } from "lucide-react";
@@ -9,9 +9,30 @@ import Link from "next/link";
 
 const COMPOUND_OPTIONS = ["June", "Ogami", "The Estates"];
 
-export default function EditReleasePageClient({ releaseId }: { releaseId: string }) {
+export default function EditReleasePageClient({ releaseId: initialReleaseId }: { releaseId: string }) {
   const router = useRouter();
-  const existingRelease = releaseId ? getReleaseById(releaseId) : null;
+  const pathname = usePathname();
+
+  // Extract releaseId from URL pathname - primary source of truth
+  const [extractedReleaseId, setExtractedReleaseId] = useState<string>("");
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const fullPath = window.location.pathname;
+      const segments = fullPath.split("/").filter(Boolean);
+      const basePathIndex = segments.indexOf("review-process");
+      const cleanSegments = basePathIndex >= 0 ? segments.slice(basePathIndex + 1) : segments;
+      // Find segment after "new" for edit page: /releases/new/{releaseId}
+      const newIndex = cleanSegments.indexOf("new");
+      if (newIndex >= 0 && newIndex + 1 < cleanSegments.length) {
+        const id = cleanSegments[newIndex + 1].replace(/\/$/, "");
+        if (id && id !== "fallback") setExtractedReleaseId(id);
+      }
+    }
+  }, [pathname]);
+
+  const actualReleaseId = extractedReleaseId || initialReleaseId || "";
+  const [existingRelease, setExistingRelease] = useState<Release | null>(null);
 
   const [releaseName, setReleaseName] = useState("");
   const [compoundName, setCompoundName] = useState("");
@@ -21,23 +42,37 @@ export default function EditReleasePageClient({ releaseId }: { releaseId: string
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pre-populate form if editing
+  // Load existing release and pre-populate form if editing
   useEffect(() => {
-    if (existingRelease && typeof window !== "undefined") {
-      // Batch state updates to avoid cascading renders
-      requestAnimationFrame(() => {
-        setReleaseName(existingRelease.releaseName);
-        setCompoundName(existingRelease.compoundName);
-        setReleaseDate(existingRelease.releaseDate);
-        setSelectedUnitDesignIds(new Set(existingRelease.unitDesigns.map((d) => d.id)));
-        setSelectedPaymentPlanIds(new Set(existingRelease.paymentPlans.map((p) => p.id)));
+    const loadRelease = async () => {
+      if (actualReleaseId && typeof window !== "undefined") {
+        try {
+          const loadedRelease = await getReleaseById(actualReleaseId);
+          if (loadedRelease) {
+            setExistingRelease(loadedRelease);
+            // Batch state updates to avoid cascading renders
+            requestAnimationFrame(() => {
+              setReleaseName(loadedRelease.releaseName);
+              setCompoundName(loadedRelease.compoundName);
+              setReleaseDate(loadedRelease.releaseDate);
+              setSelectedUnitDesignIds(new Set(loadedRelease.unitDesigns.map((d) => d.id)));
+              setSelectedPaymentPlanIds(new Set(loadedRelease.paymentPlans.map((p) => p.id)));
+              setIsLoading(false);
+            });
+          } else {
+            setIsLoading(false);
+          }
+        } catch (error) {
+          setIsLoading(false);
+        }
+      } else {
         setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
-    }
+      }
+    };
+    
+    loadRelease();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [actualReleaseId]);
 
   const handleUnitDesignToggle = (id: string) => {
     setSelectedUnitDesignIds((prev) => {
@@ -96,10 +131,10 @@ export default function EditReleasePageClient({ releaseId }: { releaseId: string
       };
 
       // Save release
-      saveRelease(releaseData);
+      await saveRelease(releaseData);
 
       // Redirect to review page
-      router.push(`/review/${releaseData.id}`);
+      router.push(`/review/${releaseData.id}/`);
     } catch {
       alert("Failed to update release. Please try again.");
       setIsSubmitting(false);

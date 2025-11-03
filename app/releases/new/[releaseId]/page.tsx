@@ -1,13 +1,10 @@
-import EditReleasePageClient from "./EditReleasePageClient";
+import EditReleasePageClientWrapper from "./EditReleasePageClientWrapper";
 
-// Generate static params for static export
-// Pre-generate routes for mock releases
-// All other routes will be handled client-side
-export function generateStaticParams() {
-  return [{ releaseId: "june-latest" }, { releaseId: "june-phase-2" }];
+// Server component with generateStaticParams - required for static export
+export async function generateStaticParams() {
+  return [{ releaseId: "fallback" }];
 }
 
 export default async function EditReleasePage({ params }: { params: Promise<{ releaseId: string }> }) {
-  const { releaseId } = await params;
-  return <EditReleasePageClient releaseId={releaseId} />;
+  return <EditReleasePageClientWrapper />;
 }

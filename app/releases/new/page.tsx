@@ -1,23 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { allUnitDesigns, allPaymentPlans, generateReleaseId, saveRelease, generateUnits } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
-import { Check, X, ArrowLeft } from "lucide-react";
+import { Check, X, ArrowLeft, Copy } from "lucide-react";
 import Link from "next/link";
 
 const COMPOUND_OPTIONS = ["June", "Ogami", "The Estates"];
 
 export default function CreateReleasePage() {
-  const router = useRouter();
-
   const [releaseName, setReleaseName] = useState("");
   const [compoundName, setCompoundName] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
   const [selectedUnitDesignIds, setSelectedUnitDesignIds] = useState<Set<string>>(new Set());
   const [selectedPaymentPlanIds, setSelectedPaymentPlanIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdReleaseId, setCreatedReleaseId] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const handleUnitDesignToggle = (id: string) => {
     setSelectedUnitDesignIds((prev) => {
@@ -103,15 +102,98 @@ export default function CreateReleasePage() {
       };
 
       // Save release
-      saveRelease(releaseData);
+      await saveRelease(releaseData);
 
-      // Redirect to review page
-      router.push(`/review/${releaseData.id}`);
+      // Show success message with link instead of redirecting
+      setCreatedReleaseId(releaseData.id);
+      setIsSubmitting(false);
     } catch {
       alert("Failed to create release. Please try again.");
       setIsSubmitting(false);
     }
   };
+
+  const getReviewLink = (releaseId: string): string => {
+    if (typeof window === "undefined") return "";
+    const basePath = "/review-process";
+    return `${window.location.origin}${basePath}/review/${releaseId}/`;
+  };
+
+  const copyLink = async (releaseId: string) => {
+    const link = getReviewLink(releaseId);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch {
+      alert("Failed to copy link");
+    }
+  };
+
+  // Show success message with link if release was created
+  if (createdReleaseId) {
+    const reviewLink = getReviewLink(createdReleaseId);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg border border-gray-200 p-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Release Created Successfully!</h1>
+            <p className="text-gray-600">Your release has been created. Share the link below to start reviewing.</p>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Review Link</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={reviewLink}
+                readOnly
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm font-mono"
+              />
+              <button
+                onClick={() => copyLink(createdReleaseId)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-2"
+              >
+                {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copiedLink ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <Link
+              href={`/review/${createdReleaseId}/`}
+              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center cursor-pointer"
+            >
+              Go to Review Page
+            </Link>
+            <button
+              onClick={() => {
+                setCreatedReleaseId(null);
+                setReleaseName("");
+                setCompoundName("");
+                setReleaseDate("");
+                setSelectedUnitDesignIds(new Set());
+                setSelectedPaymentPlanIds(new Set());
+              }}
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium cursor-pointer"
+            >
+              Create Another
+            </button>
+            <Link
+              href="/"
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-center cursor-pointer"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -375,13 +457,12 @@ export default function CreateReleasePage() {
 
               {/* Submit Buttons */}
               <div className="flex gap-4 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => router.push("/")}
-                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium cursor-pointer"
+                <Link
+                  href="/"
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium cursor-pointer text-center"
                 >
                   Cancel
-                </button>
+                </Link>
                 <button
                   type="submit"
                   disabled={isSubmitting}
