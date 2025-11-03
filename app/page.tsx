@@ -164,14 +164,23 @@ export default function Home() {
     const loadData = async () => {
       if (typeof window !== "undefined") {
         // Handle client-side routing from 404.html redirect
+        // If we're on the home page but have a redirect path, navigate to it
         const redirectPath = sessionStorage.getItem("nextjs-redirect");
-        if (redirectPath) {
+        console.log("[Home Page] DEBUG - Checking for redirect:", redirectPath);
+        console.log("[Home Page] DEBUG - Current pathname:", window.location.pathname);
+        
+        if (redirectPath && (window.location.pathname === "/review-process/" || window.location.pathname === "/review-process")) {
+          console.log("[Home Page] DEBUG - Found redirect path, navigating to:", redirectPath);
           sessionStorage.removeItem("nextjs-redirect");
-          // Update browser history to the original path
-          // Next.js router will handle the routing when the page loads
-          window.history.replaceState({}, "", redirectPath);
-          // Trigger a navigation event that Next.js will pick up
-          window.dispatchEvent(new PopStateEvent("popstate"));
+          
+          // Build full path with basePath
+          const basePath = "/review-process";
+          const fullPath = redirectPath.startsWith(basePath) ? redirectPath : basePath + redirectPath;
+          console.log("[Home Page] DEBUG - Full redirect path:", fullPath);
+          
+          // Use window.location for immediate navigation
+          window.location.href = fullPath;
+          return; // Don't load data if redirecting
         }
 
         const allReleases = await getAllReleases();

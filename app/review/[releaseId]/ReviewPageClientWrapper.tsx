@@ -31,8 +31,14 @@ export default function ReviewPageClientWrapper() {
         // Use the redirect path and clear it
         pathToUse = redirectPath.startsWith("/") ? redirectPath : "/" + redirectPath;
         sessionStorage.removeItem("nextjs-redirect");
+        
+        // Build full path with basePath for history update
+        const basePath = "/review-process";
+        const fullPath = pathToUse.startsWith(basePath) ? pathToUse : basePath + pathToUse;
+        
+        console.log("[ReviewPageClientWrapper] DEBUG - Updating history to:", fullPath);
         // Update browser history to reflect the actual path
-        window.history.replaceState({}, "", pathToUse);
+        window.history.replaceState({}, "", fullPath);
       }
       
       console.log("[ReviewPageClientWrapper] DEBUG - Using path:", pathToUse);
