@@ -377,35 +377,12 @@ export const saveRelease = (release: Release): void => {
   }
 };
 
-// Function to create a new release ID from release name
+// Function to create a new release ID
 export const generateReleaseId = (releaseName: string, compoundName: string): string => {
-  // Create a clean slug from the release name
-  let base = releaseName.toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s]+/g, "") // Remove special characters except spaces
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
-
-  // If the base is empty, use compound name
-  if (!base) {
-    base = compoundName.toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s]+/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/^-|-$/g, "");
-  }
-
-  // Check for duplicates and append number if needed
-  const releases = getAllReleases();
-  let finalId = base;
-  let counter = 1;
-  
-  while (releases.some((r) => r.id === finalId)) {
-    finalId = `${base}-${counter}`;
-    counter++;
-  }
-
-  return finalId;
+  const base = `${compoundName.toLowerCase()}-${releaseName.toLowerCase()}`;
+  return base
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") + `-${Date.now()}`;
 };
 
 export const getReleaseById = (releaseId: string): Release | undefined => {

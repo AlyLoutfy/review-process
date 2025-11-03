@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node -e \"const fs = require('fs'); fs.copyFileSync('public/404.html', 'out/404.html'); if (!fs.existsSync('out/.nojekyll')) { fs.writeFileSync('out/.nojekyll', ''); }\"",
-    "export": "next build && node -e \"const fs = require('fs'); fs.copyFileSync('public/404.html', 'out/404.html'); if (!fs.existsSync('out/.nojekyll')) { fs.writeFileSync('out/.nojekyll', ''); }\"",
+    "build": "next build",
+    "export": "next build",
     "start": "next start",
     "lint": "eslint"
   },

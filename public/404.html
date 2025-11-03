@@ -8,109 +8,53 @@
       // When GitHub Pages can't find a file, it serves this 404.html
       // We redirect to index.html and let Next.js router handle the route
       (function () {
-        console.log('[404.html] Starting redirect handler');
-        console.log('[404.html] Current path:', window.location.pathname);
-        console.log('[404.html] Has __NEXT_DATA__:', !!window.__NEXT_DATA__);
-        console.log('[404.html] Has Next.js scripts:', !!document.querySelector('script[src*="_next"]'));
-        
-        // Check if Next.js app is already loaded (prevents infinite loops)
-        if (window.__NEXT_DATA__ || document.querySelector('script[src*="_next"]')) {
-          console.log('[404.html] Next.js app detected, attempting client-side navigation');
-          
-          // Next.js app is already loaded, just update the URL and let it handle routing
-          var path = window.location.pathname;
-          var search = window.location.search;
-          var hash = window.location.hash;
-          var basePath = "/review-process";
-          
-          var relativePath = path;
-          if (relativePath.startsWith(basePath)) {
-            relativePath = relativePath.substring(basePath.length) || "/";
-          }
-          
-          console.log('[404.html] Extracted relative path:', relativePath);
-          
-          // Clear any existing redirect in sessionStorage to prevent loops
-          sessionStorage.removeItem('nextjs-redirect');
-          
-          // Use history API to update URL without reload
-          // This should trigger Next.js router to handle the route
-          try {
-            window.history.replaceState({}, '', basePath + relativePath + search + hash);
-            console.log('[404.html] Updated URL to:', basePath + relativePath + search + hash);
-            
-            // Dispatch popstate event to trigger Next.js router
-            window.dispatchEvent(new PopStateEvent('popstate'));
-            console.log('[404.html] Dispatched popstate event');
-            
-            // Also try direct router navigation if available
-            if (window.next && window.next.router) {
-              console.log('[404.html] Using Next.js router.push');
-              window.next.router.push(relativePath + search + hash);
-            }
-            
-            return;
-          } catch (e) {
-            console.error('[404.html] Error during client-side navigation:', e);
-          }
-        }
-
-        // Next.js app not loaded yet - do the redirect flow
-        console.log('[404.html] Next.js app not loaded, starting redirect flow');
-        
         var path = window.location.pathname;
         var search = window.location.search;
         var hash = window.location.hash;
-        var basePath = "/review-process";
 
-        // Remove trailing slash for consistency
+        // Remove trailing slash for consistency (Next.js router will handle it)
         if (path !== "/" && path.endsWith("/")) {
           path = path.slice(0, -1);
         }
 
-        // Extract the path relative to basePath
-        var relativePath = path;
-        if (relativePath.startsWith(basePath)) {
-          relativePath = relativePath.substring(basePath.length) || "/";
-        }
-        
-        console.log('[404.html] Extracted relative path:', relativePath);
-
-        // Check if we've already tried this redirect (prevent loops)
-        var redirectKey = 'nextjs-redirect';
-        var redirectAttemptKey = 'nextjs-redirect-attempt';
-        var lastRedirect = sessionStorage.getItem(redirectKey);
-        var attemptCount = parseInt(sessionStorage.getItem(redirectAttemptKey) || '0', 10);
-        
-        console.log('[404.html] Last redirect:', lastRedirect);
-        console.log('[404.html] Attempt count:', attemptCount);
-        
-        if (lastRedirect === relativePath + search + hash) {
-          // Already tried this, prevent loop
-          if (attemptCount >= 2) {
-            console.error('[404.html] Redirect loop detected! Clearing sessionStorage and staying on 404');
-            sessionStorage.removeItem(redirectKey);
-            sessionStorage.removeItem(redirectAttemptKey);
-            return;
-          }
-          // Increment attempt count
-          sessionStorage.setItem(redirectAttemptKey, String(attemptCount + 1));
+        // Try to access the path directly first (in case it exists as index.html)
+        // If the path doesn't end with .html, try with /index.html
+        if (!path.endsWith(".html") && path !== "/") {
+          // Check if it's a directory path that should have index.html
+          var indexPath = path + "/index.html";
+          // Try to fetch it first
+          fetch(indexPath, { method: "HEAD" })
+            .then(function (response) {
+              if (response.ok) {
+                // The index.html exists, redirect to it
+                window.location.replace(path + "/" + search + hash);
+              } else {
+                // Doesn't exist, let Next.js router handle it
+                redirectToIndex();
+              }
+            })
+            .catch(function () {
+              // Fetch failed, redirect to index and let Next.js handle it
+              redirectToIndex();
+            });
         } else {
-          // Reset attempt count for new redirect
-          sessionStorage.setItem(redirectAttemptKey, '1');
+          redirectToIndex();
         }
 
-        // Store the original path in sessionStorage for Next.js router
-        if (relativePath !== "/" && relativePath !== "/index.html") {
-          console.log('[404.html] Storing redirect path:', relativePath + search + hash);
-          sessionStorage.setItem(redirectKey, relativePath + search + hash);
+        function redirectToIndex() {
+          // Redirect to root and let Next.js router handle client-side routing
+          var originalPath = path + search + hash;
+          // Remove basePath from path if present
+          var basePath = "/review-process";
+          if (originalPath.startsWith(basePath)) {
+            originalPath = originalPath.substring(basePath.length) || "/";
+          }
+          if (originalPath !== "/" && originalPath !== "/index.html") {
+            // Store original path for Next.js router to pick up
+            sessionStorage.setItem("nextjs-redirect", originalPath);
+          }
+          window.location.replace(basePath + "/");
         }
-
-        // Redirect to the root index.html which will load Next.js app
-        // The app will read from sessionStorage and navigate to the correct route
-        var targetUrl = basePath + "/" + search + hash;
-        console.log('[404.html] Redirecting to:', targetUrl);
-        window.location.replace(targetUrl);
       })();
     </script>
     <meta http-equiv="refresh" content="0;url=/review-process/" />
@@ -119,7 +63,7 @@
     <p>Redirecting...</p>
     <noscript>
       <p>JavaScript is required for this application.</p>
-      <p><a href="/review-process/">Go to homepage</a></p>
+      <p><a href="/">Go to homepage</a></p>
     </noscript>
   </body>
 </html>

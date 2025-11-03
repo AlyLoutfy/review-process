@@ -28,46 +28,18 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
 
   // Load release on client side to avoid hydration mismatch
   useEffect(() => {
-    console.log('[ReviewPage] useEffect running');
-    console.log('[ReviewPage] releaseId:', releaseId);
-    console.log('[ReviewPage] Current path:', typeof window !== "undefined" ? window.location.pathname : "N/A");
-    
     if (releaseId && typeof window !== "undefined") {
       // Use requestAnimationFrame to avoid synchronous state updates in effect
       requestAnimationFrame(() => {
-        console.log('[ReviewPage] Loading release from localStorage:', releaseId);
         const loadedRelease = getReleaseById(releaseId);
-        console.log('[ReviewPage] Loaded release:', loadedRelease ? loadedRelease.releaseName : "NOT FOUND");
         setRelease(loadedRelease);
         setIsLoading(false);
       });
     } else {
-      console.log('[ReviewPage] No releaseId or window not available');
       setIsLoading(false);
     }
-  }, [releaseId]);
-  
-  // Listen for popstate events to handle client-side navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      console.log('[ReviewPage] Popstate event detected, checking for releaseId in URL');
-      const currentPath = window.location.pathname;
-      const basePath = "/review-process";
-      const pathMatch = currentPath.match(new RegExp(`${basePath}/review/([^/]+)`));
-      if (pathMatch && pathMatch[1]) {
-        const newReleaseId = pathMatch[1];
-        if (newReleaseId !== releaseId) {
-          console.log('[ReviewPage] ReleaseId changed in URL, reloading:', newReleaseId);
-          const loadedRelease = getReleaseById(newReleaseId);
-          setRelease(loadedRelease);
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [releaseId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { currentUser } = useUser();
   const activityLog = useActivityLog();
@@ -213,7 +185,7 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
                   </span>
                 </div>
               </div>
-              <Link href="/" prefetch={false} className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 transition-colors duration-200 cursor-pointer shadow-sm hover:shadow-md shrink-0">
+              <Link href="/" className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 transition-colors duration-200 cursor-pointer shadow-sm hover:shadow-md shrink-0">
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">All Releases</span>
               </Link>

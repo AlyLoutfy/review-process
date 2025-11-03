@@ -2,10 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
+    branches: [main]
 
 permissions:
   contents: read
@@ -26,8 +23,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "23.11.0"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -44,7 +41,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
-          name: github-pages-out
 
   deploy:
     environment:
@@ -56,5 +52,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-out

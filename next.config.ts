@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Only use static export for production builds, not for development
-  // This allows dynamic routes to work in dev mode
-  ...(process.env.NODE_ENV === "production" && { output: "export" }),
+  output: "export",
   trailingSlash: true, // Generate /path/index.html instead of /path.html for better GitHub Pages compatibility
   images: {
     unoptimized: true,
@@ -20,10 +18,6 @@ const nextConfig: NextConfig = {
   },
   // Required for GitHub Pages subdirectory deployment
   basePath: "/review-process",
-  // Disable prefetching to prevent 404 errors on dynamic routes in static export
-  experimental: {
-    optimizePackageImports: ["lucide-react"],
-  },
 };
 
 export default nextConfig;

@@ -192,7 +192,6 @@ export default function ReleaseHistoryPageClient({ release }: ReleaseHistoryPage
           <div className="flex items-center gap-3">
             <Link
               href={`/review/${release.id}`}
-              prefetch={false}
               className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-600 hover:text-gray-900"
               title="Back to review page"
             >

@@ -46,7 +46,7 @@ export default function PaymentPlanCard({ plan, isReviewed, reviewRecord, onTogg
     setIsUnitSelectionModalOpen(true);
   };
 
-  const handleUnitSelect = () => {
+  const handleUnitSelect = (unit: Unit) => {
     // In the real implementation, this would generate the payment plan PDF
     // For MVP, we just open the preview URL as before
     window.open(plan.previewUrl, "_blank");
@@ -81,10 +81,8 @@ export default function PaymentPlanCard({ plan, isReviewed, reviewRecord, onTogg
       <div className={`rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 border-2 ${isReviewed ? "bg-green-50/60 border-green-400/60" : hasIssues ? "bg-red-50/60 border-red-400/60" : "bg-white border-transparent hover:border-blue-400/60 hover:bg-gray-50/50"}`}>
         <div className="flex flex-col h-full">
           <div className="flex items-start justify-between mb-3">
-            <h3 className={`text-lg font-semibold flex-1 ${isReviewed ? "text-gray-700 line-through" : "text-gray-900"}`} style={{ wordBreak: "break-word" }}>
-              {plan.name}
-            </h3>
-            <div className="flex flex-col items-end gap-2 ml-2 shrink-0 w-full max-w-[140px]">
+            <h3 className={`text-lg font-semibold flex-1 break-words ${isReviewed ? "text-gray-700 line-through" : "text-gray-900"}`}>{plan.name}</h3>
+            <div className="flex flex-col items-end gap-2 ml-2 flex-shrink-0 w-full max-w-[140px]">
               <div className="flex flex-col items-end w-full">
                 <button onClick={handleToggle} className={`group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 cursor-pointer w-full justify-center ${isReviewed ? "bg-green-100 hover:bg-green-200 border border-green-300" : "bg-white hover:bg-green-50 border border-gray-300 hover:border-green-300"}`} aria-label={isReviewed ? "Mark as pending" : "Mark as reviewed"} title={isReviewed ? "Mark as pending" : "Mark as reviewed"}>
                   <CheckCircle2 className={`w-4 h-4 transition-colors ${isReviewed ? "text-green-700 fill-green-700" : "text-gray-600 group-hover:text-green-600"}`} />
@@ -94,7 +92,6 @@ export default function PaymentPlanCard({ plan, isReviewed, reviewRecord, onTogg
                   <div className="text-[10px] text-green-600/80 mt-0.5 text-right w-full flex items-center justify-end gap-1">
                     by {reviewRecord.userName}
                     <div className="relative group">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/review-process/images/sodic.png"
                         alt="Sodic"
@@ -110,7 +107,7 @@ export default function PaymentPlanCard({ plan, isReviewed, reviewRecord, onTogg
                       />
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50">
                         Sodic
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-gray-900"></div>
                       </div>
                     </div>
                   </div>
@@ -146,9 +143,8 @@ export default function PaymentPlanCard({ plan, isReviewed, reviewRecord, onTogg
                 </button>
                 {hasIssues && latestIssue && (
                   <div
-                    className={`fixed w-72 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-2xl transition-all duration-200 ${isTooltipVisible ? "opacity-100 visible scale-100 pointer-events-auto" : "opacity-0 invisible scale-95 pointer-events-none"}`}
+                    className={`fixed w-72 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-2xl transition-all duration-200 z-[9999] ${isTooltipVisible ? "opacity-100 visible scale-100 pointer-events-auto" : "opacity-0 invisible scale-95 pointer-events-none"}`}
                     style={{
-                      zIndex: 9999,
                       left: `${tooltipPosition.x}px`,
                       top: `${tooltipPosition.y - 10}px`,
                       transform: isTooltipVisible ? "translate(-50%, -100%) scale(1)" : "translate(-50%, -100%) scale(0.95)",
@@ -180,17 +176,15 @@ export default function PaymentPlanCard({ plan, isReviewed, reviewRecord, onTogg
                           setIsTooltipVisible(false);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="p-1 hover:bg-red-600 rounded transition-colors cursor-pointer shrink-0"
+                        className="p-1 hover:bg-red-600 rounded transition-colors cursor-pointer flex-shrink-0"
                         aria-label="Delete issue"
                       >
                         <Trash2 className="w-4 h-4 text-red-300" />
                       </button>
                     </div>
-                    <div className="whitespace-pre-wrap" style={{ wordBreak: "break-word" }}>
-                      {latestIssue.text}
-                    </div>
+                    <div className="whitespace-pre-wrap break-words">{latestIssue.text}</div>
                     {latestIssue.fileName && <div className="mt-2 text-xs text-gray-400">File: {latestIssue.fileName}</div>}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-900 pointer-events-none" style={{ borderLeftWidth: "6px", borderRightWidth: "6px", borderTopWidth: "6px" }}></div>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-gray-900 pointer-events-none"></div>
                   </div>
                 )}
               </div>

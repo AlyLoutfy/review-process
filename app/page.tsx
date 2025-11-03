@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAllReleases, deleteRelease } from "@/lib/mockData";
 import { Release } from "@/lib/mockData";
@@ -149,7 +148,6 @@ const getReleaseStatus = (release: Release): ReleaseStatus => {
 };
 
 export default function Home() {
-  const router = useRouter();
   // Initialize with empty array to avoid hydration mismatch
   // Will be populated in useEffect after mount
   const [releases, setReleases] = useState<Release[]>([]);
@@ -164,13 +162,18 @@ export default function Home() {
   // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
     if (typeof window !== "undefined") {
-      console.log('[Home] useEffect running');
-      console.log('[Home] Current path:', window.location.pathname);
-      
-      // ALWAYS load releases first, regardless of redirect
-      console.log('[Home] Loading releases...');
+      // Handle client-side routing from 404.html redirect
+      const redirectPath = sessionStorage.getItem('nextjs-redirect');
+      if (redirectPath) {
+        sessionStorage.removeItem('nextjs-redirect');
+        // Update browser history to the original path
+        // Next.js router will handle the routing when the page loads
+        window.history.replaceState({}, '', redirectPath);
+        // Trigger a navigation event that Next.js will pick up
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+
       const allReleases = getAllReleases();
-      console.log('[Home] Loaded releases:', allReleases.length);
       setReleases(allReleases);
 
       // Calculate statuses for all releases
@@ -180,58 +183,14 @@ export default function Home() {
       });
       setReleaseStatuses(statuses);
       setIsHydrated(true);
-      
-      // Handle client-side routing from 404.html redirect or create page
-      // Only process redirect if we're on the home page (/) to prevent loops
-      const currentPath = window.location.pathname;
-      const basePath = "/review-process";
-      const isOnHomePage = currentPath === basePath + "/" || currentPath === basePath || currentPath === basePath + "/index.html";
-      
-      console.log('[Home] Is on home page:', isOnHomePage);
-      
-      if (isOnHomePage) {
-        const redirectPath = sessionStorage.getItem('nextjs-redirect');
-        console.log('[Home] Redirect path from sessionStorage:', redirectPath);
-        
-        if (redirectPath) {
-          console.log('[Home] Attempting to navigate to:', redirectPath);
-          // If we're already at the target, do nothing
-          const targetFull = `${basePath}${redirectPath}`;
-          if (window.location.pathname === targetFull) {
-            console.log('[Home] Already at target path, skipping');
-            sessionStorage.removeItem('nextjs-redirect');
-            return;
-          }
-
-          // Use history API to change URL without full reload, then notify Next
-          setTimeout(() => {
-            try {
-              console.log('[Home] history.pushState to:', targetFull);
-              window.history.pushState({}, '', targetFull);
-              // Clear redirect to avoid re-processing
-              sessionStorage.removeItem('nextjs-redirect');
-              sessionStorage.removeItem('nextjs-redirect-attempt');
-              // Trigger routing
-              window.dispatchEvent(new PopStateEvent('popstate'));
-              console.log('[Home] Dispatched popstate for client routing');
-            } catch (e) {
-              console.error('[Home] Error during history navigation:', e);
-            }
-          }, 300);
-        }
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Refresh releases and statuses when localStorage changes (listen for storage events)
+  // Refresh statuses when localStorage changes (listen for storage events)
   useEffect(() => {
     const handleStorageChange = () => {
-      console.log('[Home] Storage change detected, refreshing releases');
       const allReleases = getAllReleases();
-      console.log('[Home] Refreshed releases count:', allReleases.length);
-      setReleases(allReleases);
-      
       const statuses = new Map<string, ReleaseStatus>();
       allReleases.forEach((release) => {
         statuses.set(release.id, getReleaseStatus(release));
@@ -239,10 +198,8 @@ export default function Home() {
       setReleaseStatuses(statuses);
     };
 
-    // Listen for storage events (from other tabs/windows)
     window.addEventListener("storage", handleStorageChange);
-    
-    // Also poll periodically to catch same-window changes (when releases are created in same tab)
+    // Also poll periodically to catch same-window changes
     const interval = setInterval(handleStorageChange, 1000);
 
     return () => {
@@ -255,8 +212,7 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
 
-    const basePath = "/review-process";
-    const url = `${window.location.origin}${basePath}/review/${releaseId}/`;
+    const url = `${window.location.origin}/review/${releaseId}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedReleaseId(releaseId);
@@ -273,7 +229,7 @@ export default function Home() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Sodic Releases Dashboard</h1>
           </div>
-          <Link href="/releases/new" prefetch={false} className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm hover:shadow-md cursor-pointer">
+          <Link href="/releases/new" className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm hover:shadow-md cursor-pointer">
             <Plus className="w-4 h-4" />
             Create New
           </Link>
@@ -309,10 +265,10 @@ export default function Home() {
           {releases.length === 0 ? (
             <div className="p-12 text-center">
               <p className="text-gray-500 mb-4">No releases found</p>
-                <Link href="/releases/new" prefetch={false} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
-                  <Plus className="w-4 h-4" />
-                  Create Your First Release
-                </Link>
+              <Link href="/releases/new" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
+                <Plus className="w-4 h-4" />
+                Create Your First Release
+              </Link>
             </div>
           ) : (() => {
             const filteredReleases = releases.filter((release) => {
@@ -367,7 +323,7 @@ export default function Home() {
                   return (
                     <div key={release.id} className={`p-6 transition-colors ${rowBgClass} hover:opacity-90`}>
                       <div className="flex items-start justify-between">
-                        <Link href={`/review/${release.id}`} prefetch={false} className="flex-1 cursor-pointer">
+                        <Link href={`/review/${release.id}`} className="flex-1 cursor-pointer">
                           <div className="flex items-center gap-3 mb-2">
                             <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full uppercase tracking-wider">{release.compoundName}</span>
                             <h3 className="text-xl font-semibold text-gray-900">{release.releaseName}</h3>
@@ -420,7 +376,6 @@ export default function Home() {
                         <div className="ml-4 flex items-center gap-2">
                           <Link 
                             href={`/review/${release.id}/history`}
-                            prefetch={false}
                             onClick={(e) => e.stopPropagation()} 
                             className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
                             aria-label="View history"
@@ -433,7 +388,6 @@ export default function Home() {
                           </Link>
                           <Link 
                             href={`/releases/new/${release.id}`} 
-                            prefetch={false}
                             onClick={(e) => e.stopPropagation()} 
                             className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-gray-900 relative group" 
                             aria-label="Edit release"

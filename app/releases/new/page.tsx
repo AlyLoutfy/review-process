@@ -103,20 +103,10 @@ export default function CreateReleasePage() {
       };
 
       // Save release
-      console.log('[Create] Saving release:', releaseData.id);
       saveRelease(releaseData);
-      console.log('[Create] Release saved, navigating to review page');
 
-      // Most reliable navigation for GitHub Pages static hosting:
-      // - Store target route for home page to read and navigate
-      // - Redirect to basePath root; home will client-navigate
-      const target = `/review/${releaseData.id}/`;
-      try {
-        sessionStorage.setItem('nextjs-redirect', target);
-        sessionStorage.removeItem('nextjs-redirect-attempt');
-      } catch {}
-      const basePath = "/review-process";
-      window.location.href = `${basePath}/`;
+      // Redirect to review page
+      router.push(`/review/${releaseData.id}`);
     } catch {
       alert("Failed to create release. Please try again.");
       setIsSubmitting(false);
