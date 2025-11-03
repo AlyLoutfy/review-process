@@ -285,7 +285,8 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
 
-    const url = `${window.location.origin}/review/${releaseId}`;
+    const basePath = "/review-process";
+    const url = `${window.location.origin}${basePath}/review/${releaseId}/`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedReleaseId(releaseId);

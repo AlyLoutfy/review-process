@@ -86,9 +86,9 @@ export default function UnitDesignListView({ unitDesign, isReviewed, reviewRecor
 
   return (
     <>
-      <div className={`rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 relative overflow-hidden ${isReviewed ? "bg-gradient-to-br from-green-50 to-green-100/50 border-2 border-green-400/60" : hasIssues ? "bg-gradient-to-br from-red-50 to-red-100/50 border-2 border-red-400/60" : "bg-white border border-gray-200 hover:border-blue-300 hover:shadow-lg hover:bg-gradient-to-br hover:from-blue-50/30 hover:to-white"}`}>
+      <div className={`rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 relative overflow-hidden ${isReviewed ? "bg-linear-to-br from-green-50 to-green-100/50 border-2 border-green-400/60" : hasIssues ? "bg-linear-to-br from-red-50 to-red-100/50 border-2 border-red-400/60" : "bg-white border border-gray-200 hover:border-blue-300 hover:shadow-lg hover:bg-linear-to-br hover:from-blue-50/30 hover:to-white"}`}>
         {/* Subtle background accent */}
-        {!isReviewed && !hasIssues && <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/20 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />}
+        {!isReviewed && !hasIssues && <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-blue-100/20 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />}
         {/* Review and Flag Buttons - Top Right */}
         <div className="absolute top-5 right-5 flex flex-col items-end gap-2 z-10">
           <div className="flex items-start gap-2">
@@ -244,11 +244,11 @@ export default function UnitDesignListView({ unitDesign, isReviewed, reviewRecor
             </div>
 
             <div className="flex flex-col gap-2">
-              <button onClick={() => handleViewMedia()} className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium cursor-pointer h-9 ${isReviewed ? "bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200" : "bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 hover:from-blue-100 hover:to-blue-200 border border-blue-200/60 shadow-sm hover:shadow-md"}`}>
+              <button onClick={() => handleViewMedia()} className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium cursor-pointer h-9 ${isReviewed ? "bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200" : "bg-linear-to-r from-blue-50 to-blue-100/50 text-blue-700 hover:from-blue-100 hover:to-blue-200 border border-blue-200/60 shadow-sm hover:shadow-md"}`}>
                 <ImageIcon className="w-3.5 h-3.5" />
                 View All Media
               </button>
-              <button onClick={handlePreview} className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium cursor-pointer h-9 ${isReviewed ? "bg-gray-200 text-gray-500 hover:bg-gray-300 border border-gray-300" : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg"}`}>
+              <button onClick={handlePreview} className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium cursor-pointer h-9 ${isReviewed ? "bg-gray-200 text-gray-500 hover:bg-gray-300 border border-gray-300" : "bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg"}`}>
                 <Download className="w-3.5 h-3.5" />
                 Preview Offer
               </button>

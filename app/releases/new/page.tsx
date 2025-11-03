@@ -107,16 +107,16 @@ export default function CreateReleasePage() {
       saveRelease(releaseData);
       console.log('[Create] Release saved, navigating to review page');
 
-      // Use client-side navigation that doesn't cause a page reload
-      // This is important for GitHub Pages static export
-      const reviewPath = `/review/${releaseData.id}`;
+      // Most reliable navigation for GitHub Pages static hosting:
+      // - Store target route for home page to read and navigate
+      // - Redirect to basePath root; home will client-navigate
+      const target = `/review/${releaseData.id}/`;
+      try {
+        sessionStorage.setItem('nextjs-redirect', target);
+        sessionStorage.removeItem('nextjs-redirect-attempt');
+      } catch {}
       const basePath = "/review-process";
-      const fullPath = basePath + reviewPath;
-      
-      // Update URL using history API (no page reload)
-      window.history.pushState({}, '', fullPath);
-      // Trigger Next.js router to handle the route change
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      window.location.href = `${basePath}/`;
     } catch {
       alert("Failed to create release. Please try again.");
       setIsSubmitting(false);
