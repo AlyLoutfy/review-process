@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   },
   // Required for GitHub Pages subdirectory deployment
   basePath: "/review-process",
+  // Disable prefetching to prevent 404 errors on dynamic routes in static export
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
 };
 
 export default nextConfig;
