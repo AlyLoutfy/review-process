@@ -187,7 +187,8 @@ export default function Home() {
           console.log('[Home] Attempting to navigate to:', redirectPath);
           
           // Wait for Next.js to be fully initialized before navigating
-          // This prevents the navigation from triggering another 404
+          // IMPORTANT: Don't use router.replace() as it causes full page reload on GitHub Pages
+          // Instead, update URL directly and let Next.js handle client-side routing
           const navigateToRoute = () => {
             try {
               console.log('[Home] Executing navigation to:', redirectPath);
@@ -200,6 +201,7 @@ export default function Home() {
                 if (lastPath === redirectPath && now - parseInt(lastTime, 10) < 2000) {
                   console.error('[Home] Redirect loop detected! Clearing and staying on home');
                   sessionStorage.removeItem('last-navigation');
+                  sessionStorage.removeItem('nextjs-redirect');
                   return;
                 }
               }
@@ -207,10 +209,18 @@ export default function Home() {
               // Store navigation attempt
               sessionStorage.setItem('last-navigation', `${redirectPath}|${now}`);
               
-              // Use Next.js router for client-side navigation
-              // This should NOT trigger a page reload in static export mode
-              router.replace(redirectPath);
-              console.log('[Home] Navigation initiated');
+              const basePath = "/review-process";
+              const fullPath = basePath + redirectPath;
+              
+              // Update URL using history API - this doesn't trigger a page reload
+              // Next.js router will detect the URL change and handle routing client-side
+              console.log('[Home] Updating URL to:', fullPath);
+              window.history.pushState({}, '', fullPath);
+              
+              // Force Next.js to handle the route change by dispatching a popstate event
+              // This triggers Next.js router without causing a page reload
+              window.dispatchEvent(new PopStateEvent('popstate'));
+              console.log('[Home] Dispatched popstate event for client-side routing');
               
               // Clear the navigation attempt after 3 seconds
               setTimeout(() => {
@@ -221,8 +231,8 @@ export default function Home() {
             }
           };
           
-          // Wait a bit longer to ensure Next.js is fully loaded
-          setTimeout(navigateToRoute, 200);
+          // Wait for Next.js router to be fully initialized
+          setTimeout(navigateToRoute, 300);
           
           return; // Exit early to prevent loading releases on redirect
         }
@@ -244,10 +254,14 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Refresh statuses when localStorage changes (listen for storage events)
+  // Refresh releases and statuses when localStorage changes (listen for storage events)
   useEffect(() => {
     const handleStorageChange = () => {
+      console.log('[Home] Storage change detected, refreshing releases');
       const allReleases = getAllReleases();
+      console.log('[Home] Refreshed releases count:', allReleases.length);
+      setReleases(allReleases);
+      
       const statuses = new Map<string, ReleaseStatus>();
       allReleases.forEach((release) => {
         statuses.set(release.id, getReleaseStatus(release));
@@ -255,8 +269,10 @@ export default function Home() {
       setReleaseStatuses(statuses);
     };
 
+    // Listen for storage events (from other tabs/windows)
     window.addEventListener("storage", handleStorageChange);
-    // Also poll periodically to catch same-window changes
+    
+    // Also poll periodically to catch same-window changes (when releases are created in same tab)
     const interval = setInterval(handleStorageChange, 1000);
 
     return () => {

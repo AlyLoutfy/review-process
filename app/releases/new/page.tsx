@@ -103,10 +103,20 @@ export default function CreateReleasePage() {
       };
 
       // Save release
+      console.log('[Create] Saving release:', releaseData.id);
       saveRelease(releaseData);
+      console.log('[Create] Release saved, navigating to review page');
 
-      // Redirect to review page
-      router.push(`/review/${releaseData.id}`);
+      // Use client-side navigation that doesn't cause a page reload
+      // This is important for GitHub Pages static export
+      const reviewPath = `/review/${releaseData.id}`;
+      const basePath = "/review-process";
+      const fullPath = basePath + reviewPath;
+      
+      // Update URL using history API (no page reload)
+      window.history.pushState({}, '', fullPath);
+      // Trigger Next.js router to handle the route change
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } catch {
       alert("Failed to create release. Please try again.");
       setIsSubmitting(false);

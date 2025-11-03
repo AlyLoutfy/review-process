@@ -45,7 +45,28 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
       console.log('[ReviewPage] No releaseId or window not available');
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [releaseId]);
+  
+  // Listen for popstate events to handle client-side navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      console.log('[ReviewPage] Popstate event detected, checking for releaseId in URL');
+      const currentPath = window.location.pathname;
+      const basePath = "/review-process";
+      const pathMatch = currentPath.match(new RegExp(`${basePath}/review/([^/]+)`));
+      if (pathMatch && pathMatch[1]) {
+        const newReleaseId = pathMatch[1];
+        if (newReleaseId !== releaseId) {
+          console.log('[ReviewPage] ReleaseId changed in URL, reloading:', newReleaseId);
+          const loadedRelease = getReleaseById(newReleaseId);
+          setRelease(loadedRelease);
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [releaseId]);
 
   const { currentUser } = useUser();
