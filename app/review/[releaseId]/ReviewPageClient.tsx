@@ -66,15 +66,27 @@ export default function ReviewPageClient({ releaseId: initialReleaseId }: { rele
   // Load release on client side to avoid hydration mismatch
   useEffect(() => {
     const loadRelease = async () => {
+      console.log("[ReviewPageClient] DEBUG - Loading release, releaseId:", releaseId);
+      console.log("[ReviewPageClient] DEBUG - window check:", typeof window !== "undefined");
+      console.log("[ReviewPageClient] DEBUG - isFallback:", releaseId === "fallback");
+      
       if (releaseId && typeof window !== "undefined" && releaseId !== "fallback") {
         try {
+          console.log("[ReviewPageClient] DEBUG - Calling getReleaseById with:", releaseId);
           const loadedRelease = await getReleaseById(releaseId);
+          console.log("[ReviewPageClient] DEBUG - Loaded release:", loadedRelease ? {
+            id: loadedRelease.id,
+            name: loadedRelease.releaseName,
+            compound: loadedRelease.compoundName
+          } : "null");
           setRelease(loadedRelease);
           setIsLoading(false);
         } catch (error) {
+          console.error("[ReviewPageClient] DEBUG - Error loading release:", error);
           setIsLoading(false);
         }
       } else {
+        console.log("[ReviewPageClient] DEBUG - Skipping load (no releaseId, no window, or fallback)");
         setIsLoading(false);
       }
     };
