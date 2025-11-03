@@ -28,18 +28,25 @@ export default function ReviewPageClient({ releaseId }: { releaseId: string }) {
 
   // Load release on client side to avoid hydration mismatch
   useEffect(() => {
+    console.log('[ReviewPage] useEffect running');
+    console.log('[ReviewPage] releaseId:', releaseId);
+    console.log('[ReviewPage] Current path:', typeof window !== "undefined" ? window.location.pathname : "N/A");
+    
     if (releaseId && typeof window !== "undefined") {
       // Use requestAnimationFrame to avoid synchronous state updates in effect
       requestAnimationFrame(() => {
+        console.log('[ReviewPage] Loading release from localStorage:', releaseId);
         const loadedRelease = getReleaseById(releaseId);
+        console.log('[ReviewPage] Loaded release:', loadedRelease ? loadedRelease.releaseName : "NOT FOUND");
         setRelease(loadedRelease);
         setIsLoading(false);
       });
     } else {
+      console.log('[ReviewPage] No releaseId or window not available');
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [releaseId]);
 
   const { currentUser } = useUser();
   const activityLog = useActivityLog();

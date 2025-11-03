@@ -164,26 +164,73 @@ export default function Home() {
   // Load releases and statuses after mount to avoid hydration mismatch
   useEffect(() => {
     if (typeof window !== "undefined") {
+      console.log('[Home] useEffect running');
+      console.log('[Home] Current path:', window.location.pathname);
+      
       // Handle client-side routing from 404.html redirect
       // Only process redirect if we're on the home page (/) to prevent loops
       const currentPath = window.location.pathname;
       const basePath = "/review-process";
-      const isOnHomePage = currentPath === basePath + "/" || currentPath === basePath;
+      const isOnHomePage = currentPath === basePath + "/" || currentPath === basePath || currentPath === basePath + "/index.html";
+      
+      console.log('[Home] Is on home page:', isOnHomePage);
       
       if (isOnHomePage) {
         const redirectPath = sessionStorage.getItem('nextjs-redirect');
+        console.log('[Home] Redirect path from sessionStorage:', redirectPath);
+        
         if (redirectPath) {
           // Clear immediately to prevent loop
           sessionStorage.removeItem('nextjs-redirect');
+          sessionStorage.removeItem('nextjs-redirect-attempt');
           
-          // Use replace instead of push to avoid adding to history
+          console.log('[Home] Attempting to navigate to:', redirectPath);
+          
+          // Wait for Next.js to be fully initialized before navigating
           // This prevents the navigation from triggering another 404
-          router.replace(redirectPath);
+          const navigateToRoute = () => {
+            try {
+              console.log('[Home] Executing navigation to:', redirectPath);
+              
+              // Check if we're in a redirect loop
+              const lastNavigation = sessionStorage.getItem('last-navigation');
+              const now = Date.now();
+              if (lastNavigation) {
+                const [lastPath, lastTime] = lastNavigation.split('|');
+                if (lastPath === redirectPath && now - parseInt(lastTime, 10) < 2000) {
+                  console.error('[Home] Redirect loop detected! Clearing and staying on home');
+                  sessionStorage.removeItem('last-navigation');
+                  return;
+                }
+              }
+              
+              // Store navigation attempt
+              sessionStorage.setItem('last-navigation', `${redirectPath}|${now}`);
+              
+              // Use Next.js router for client-side navigation
+              // This should NOT trigger a page reload in static export mode
+              router.replace(redirectPath);
+              console.log('[Home] Navigation initiated');
+              
+              // Clear the navigation attempt after 3 seconds
+              setTimeout(() => {
+                sessionStorage.removeItem('last-navigation');
+              }, 3000);
+            } catch (e) {
+              console.error('[Home] Error during navigation:', e);
+            }
+          };
+          
+          // Wait a bit longer to ensure Next.js is fully loaded
+          setTimeout(navigateToRoute, 200);
+          
           return; // Exit early to prevent loading releases on redirect
         }
       }
 
+      console.log('[Home] Loading releases...');
       const allReleases = getAllReleases();
+      console.log('[Home] Loaded releases:', allReleases.length);
       setReleases(allReleases);
 
       // Calculate statuses for all releases
