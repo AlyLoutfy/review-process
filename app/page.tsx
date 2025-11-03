@@ -194,46 +194,30 @@ export default function Home() {
         console.log('[Home] Redirect path from sessionStorage:', redirectPath);
         
         if (redirectPath) {
-          // Clear immediately to prevent loop
-          sessionStorage.removeItem('nextjs-redirect');
-          sessionStorage.removeItem('nextjs-redirect-attempt');
-          
           console.log('[Home] Attempting to navigate to:', redirectPath);
-          
-          // Wait for releases to load and Next.js to be fully initialized
-          // Then navigate using router.push which works correctly in Next.js
+          // If we're already at the target, do nothing
+          const targetFull = `${basePath}${redirectPath}`;
+          if (window.location.pathname === targetFull) {
+            console.log('[Home] Already at target path, skipping');
+            sessionStorage.removeItem('nextjs-redirect');
+            return;
+          }
+
+          // Use history API to change URL without full reload, then notify Next
           setTimeout(() => {
             try {
-              console.log('[Home] Executing navigation to:', redirectPath);
-              
-              // Check if we're in a redirect loop
-              const lastNavigation = sessionStorage.getItem('last-navigation');
-              const now = Date.now();
-              if (lastNavigation) {
-                const [lastPath, lastTime] = lastNavigation.split('|');
-                if (lastPath === redirectPath && now - parseInt(lastTime, 10) < 2000) {
-                  console.error('[Home] Redirect loop detected! Clearing and staying on home');
-                  sessionStorage.removeItem('last-navigation');
-                  return;
-                }
-              }
-              
-              // Store navigation attempt
-              sessionStorage.setItem('last-navigation', `${redirectPath}|${now}`);
-              
-              // Use Next.js router.push() - it handles client-side routing correctly
-              // The key is ensuring we wait for everything to be ready
-              router.push(redirectPath);
-              console.log('[Home] Router.push() called for client-side navigation');
-              
-              // Clear the navigation attempt after 3 seconds
-              setTimeout(() => {
-                sessionStorage.removeItem('last-navigation');
-              }, 3000);
+              console.log('[Home] history.pushState to:', targetFull);
+              window.history.pushState({}, '', targetFull);
+              // Clear redirect to avoid re-processing
+              sessionStorage.removeItem('nextjs-redirect');
+              sessionStorage.removeItem('nextjs-redirect-attempt');
+              // Trigger routing
+              window.dispatchEvent(new PopStateEvent('popstate'));
+              console.log('[Home] Dispatched popstate for client routing');
             } catch (e) {
-              console.error('[Home] Error during navigation:', e);
+              console.error('[Home] Error during history navigation:', e);
             }
-          }, 500); // Increased delay to ensure releases are loaded and rendered
+          }, 300);
         }
       }
     }
