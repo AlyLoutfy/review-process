@@ -212,7 +212,9 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
 
-    const url = `${window.location.origin}/review/${releaseId}`;
+    // Ensure correct basePath and trailing slash for GitHub Pages deep links
+    const basePath = "/review-process"; // matches next.config.js basePath
+    const url = `${window.location.origin}${basePath}/review/${releaseId}/`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedReleaseId(releaseId);
